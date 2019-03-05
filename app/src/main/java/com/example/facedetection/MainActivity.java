@@ -1,5 +1,6 @@
 package com.example.facedetection;
 
+import android.content.Intent;
 import android.graphics.Point;
 import android.view.View;
 import android.view.ViewGroup;
@@ -34,6 +35,7 @@ public class MainActivity extends BaseActivity {
      * @param v
      */
     public void startOnclick(View v) {
-
+        Intent intent = new Intent(this, ShotActivity.class);
+        startActivity(intent);
     }
 }
