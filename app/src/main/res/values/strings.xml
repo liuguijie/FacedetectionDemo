@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">FaceDetection</string>
+    <string name="tv_start">开始</string>
 </resources>
