@@ -1,22 +1,13 @@
 package com.example.facedetection;
 
-import android.content.Context;
-import android.util.DisplayMetrics;
-import android.view.WindowManager;
+import android.app.Activity;
+import android.graphics.Point;
 
 public class Util {
-    /**
-     * 获得屏幕宽度
-     *
-     * @param context
-     * @return
-     */
-    public static int getScreenWidth(Context context)
-    {
-        WindowManager wm = (WindowManager) context
-                .getSystemService(Context.WINDOW_SERVICE);
-        DisplayMetrics outMetrics = new DisplayMetrics();
-        wm.getDefaultDisplay().getMetrics(outMetrics);
-        return outMetrics.widthPixels;
+    //获取屏幕的宽度
+    public static int getScreenWidth(Activity activity) {
+        Point point = new Point();
+        activity.getWindowManager().getDefaultDisplay().getSize(point);
+        return point.x;
     }
 }

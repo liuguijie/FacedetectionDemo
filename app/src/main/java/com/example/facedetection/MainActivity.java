@@ -1,7 +1,6 @@
 package com.example.facedetection;
 
-import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
+import android.graphics.Point;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -19,15 +18,14 @@ public class MainActivity extends BaseActivity {
      */
     @Override
     public void onLoad() {
+        //图片宽高为屏幕宽度的一半
         ImageView default_icon = findViewById(R.id.main_default_icon);
-        //宽度为屏幕的一半，高度自适应
-        int width = Util.getScreenWidth(this);
         ViewGroup.LayoutParams lp = default_icon.getLayoutParams();
-        lp.width = width / 2;
-        lp.height = ViewGroup.LayoutParams.WRAP_CONTENT;
+        int halfWidth = Util.getScreenWidth(this) / 2;
+        lp.width = halfWidth;
+        lp.height = halfWidth;
         default_icon.setLayoutParams(lp);
-        default_icon.setMaxWidth(width / 2);
-        default_icon.setMaxHeight(width * 2);
+        default_icon.setImageResource(R.mipmap.ic_launcher);
     }
 
     /**
