@@ -5,10 +5,13 @@
     <color name="colorAccent">#D81B60</color>
 
     <color name="status_bar">#56B2C6</color>
+    <color name="status">#1A96AA</color>
     <color name="tv_start_color">#5BABA9</color>
     <color name="gray">#D9D4CF</color>
+    <color name="gray_1">#BBB5B1</color>
     <color name="main_layout_bg">#F0E5DF</color>
     <color name="include_bg">#56B2C6</color>
     <color name="white">#ffffff</color>
-
+    <color name="black">#000000</color>
+    <color name="blue">#1C9BD6</color>
 </resources>

@@ -1,5 +1,7 @@
 <resources>
-    <string name="app_name">FaceDetection</string>
-    <string name="tv_start">开始g</string>
-
+    <string name="app_name">人脸识别</string>
+    <string name="tv_start">开始</string>
+    <string name="dialog_tv">拍摄完成！</string>
+    <string name="dialog_cancel">取消</string>
+    <string name="dialog_continue">继续</string>
 </resources>

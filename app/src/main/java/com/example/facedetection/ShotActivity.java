@@ -1,5 +1,6 @@
 package com.example.facedetection;
 
+import android.app.Dialog;
 import android.graphics.PixelFormat;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -7,6 +8,7 @@ import android.view.View;
 import android.widget.ImageView;
 
 import com.example.facedetection.base.BaseActivity;
+import com.example.facedetection.view.CommomDialog;
 
 public class ShotActivity extends BaseActivity implements View.OnClickListener, SurfaceHolder.Callback {
 
@@ -24,7 +26,7 @@ public class ShotActivity extends BaseActivity implements View.OnClickListener, 
         surfaceView = findViewById(R.id.surfaceView);
 
         SurfaceHolder holder = surfaceView.getHolder();
-        holder.setFormat(PixelFormat.TRANSLUCENT);
+        holder.setFormat(PixelFormat.TRANSPARENT);
         holder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
 
 
@@ -39,7 +41,14 @@ public class ShotActivity extends BaseActivity implements View.OnClickListener, 
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.clude_icon://反转摄像头
+                new CommomDialog(this, R.style.dialog, new CommomDialog.OnClickListener() {
+                    @Override
+                    public void onClick(Dialog dialog, boolean again) {
+                        if (again){
 
+                        }
+                    }
+                }).show();
                 break;
             case R.id.camera://拍照
 
