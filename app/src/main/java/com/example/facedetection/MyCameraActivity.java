@@ -1,13 +1,8 @@
 package com.example.facedetection;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
-import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.Dialog;
-import android.app.DialogFragment;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.ImageFormat;
@@ -27,14 +22,12 @@ import android.hardware.camera2.TotalCaptureResult;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.Image;
 import android.media.ImageReader;
-import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.util.Size;
 import android.util.SparseIntArray;
@@ -45,6 +38,7 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.example.facedetection.base.BaseActivity;
 import com.example.facedetection.view.AutoFitTextureView;
 import com.example.facedetection.view.CommomDialog;
 
@@ -60,7 +54,7 @@ import java.util.List;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
-public class MyCameraActivity extends AppCompatActivity implements View.OnClickListener {
+public class MyCameraActivity extends BaseActivity implements View.OnClickListener {
 
     /**
      * 相机状态：显示相机预览。
@@ -141,11 +135,23 @@ public class MyCameraActivity extends AppCompatActivity implements View.OnClickL
     private ImageView reversal;
     private ImageView camera;
 
+
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_shot);
-        initView();
+    public int getLayoutId() {
+        return R.layout.activity_shot;
+    }
+
+    @Override
+    public void onLoad() {
+        ctx = MyCameraActivity.this;
+        mTextureView = findViewById(R.id.texture);
+        shot_icon = findViewById(R.id.shot_icon);
+        reversal = findViewById(R.id.clude_icon);
+        camera = findViewById(R.id.camera);
+        reversal.setOnClickListener(this);
+        camera.setOnClickListener(this);
+        //创建文件
+        mFile = new File(Environment.getExternalStorageDirectory(), "first.jpg");
     }
 
     /**
@@ -296,21 +302,6 @@ public class MyCameraActivity extends AppCompatActivity implements View.OnClickL
 
     };
 
-    /**
-     * 初始化
-     */
-    @SuppressLint("WrongViewCast")
-    private void initView() {
-        ctx = MyCameraActivity.this;
-        mTextureView = findViewById(R.id.texture);
-        shot_icon = findViewById(R.id.shot_icon);
-        reversal = findViewById(R.id.clude_icon);
-        camera = findViewById(R.id.camera);
-        reversal.setOnClickListener(this);
-        camera.setOnClickListener(this);
-        //创建文件
-        mFile = new File(Environment.getExternalStorageDirectory(), "first.jpg");
-    }
 
     @Override
     public void onResume() {
