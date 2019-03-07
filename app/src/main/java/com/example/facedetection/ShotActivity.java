@@ -1,8 +1,19 @@
 package com.example.facedetection;
 
-import com.example.facedetection.base.BaseActivity;
+import android.app.Dialog;
+import android.graphics.PixelFormat;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
+import android.view.View;
+import android.widget.ImageView;
 
-public class ShotActivity extends BaseActivity {
+import com.example.facedetection.base.BaseActivity;
+import com.example.facedetection.view.CommomDialog;
+
+public class ShotActivity extends BaseActivity implements View.OnClickListener, SurfaceHolder.Callback {
+
+    private SurfaceView surfaceView;
+
     @Override
     public int getLayoutId() {
         return R.layout.activity_shot;
@@ -10,6 +21,53 @@ public class ShotActivity extends BaseActivity {
 
     @Override
     public void onLoad() {
+        ImageView camera = findViewById(R.id.camera);
+        ImageView right_icon = findViewById(R.id.clude_icon);
+        surfaceView = findViewById(R.id.surfaceView);
+
+        SurfaceHolder holder = surfaceView.getHolder();
+        holder.setFormat(PixelFormat.TRANSPARENT);
+        holder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+
+
+        holder.addCallback(this);
+        camera.setOnClickListener(this);
+        right_icon.setOnClickListener(this);
+
+    }
+
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.clude_icon://反转摄像头
+                new CommomDialog(this, R.style.dialog, new CommomDialog.OnClickListener() {
+                    @Override
+                    public void onClick(Dialog dialog, boolean again) {
+                        if (again){
+
+                        }
+                    }
+                }).show();
+                break;
+            case R.id.camera://拍照
+
+                break;
+        }
+    }
+
+    @Override
+    public void surfaceCreated(SurfaceHolder holder) {
+
+    }
+
+    @Override
+    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+
+    }
+
+    @Override
+    public void surfaceDestroyed(SurfaceHolder holder) {
 
     }
 }
