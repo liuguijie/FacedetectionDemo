@@ -45,6 +45,7 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.example.facedetection.base.BaseActivity;
 import com.example.facedetection.view.AutoFitTextureView;
 import com.example.facedetection.view.CommomDialog;
 
@@ -60,7 +61,7 @@ import java.util.List;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
-public class MyCameraActivity extends AppCompatActivity implements View.OnClickListener {
+public class MyCameraActivity extends BaseActivity implements View.OnClickListener {
 
     /**
      * 相机状态：显示相机预览。
@@ -140,11 +141,15 @@ public class MyCameraActivity extends AppCompatActivity implements View.OnClickL
     private Context ctx;
     private ImageView reversal;
     private ImageView camera;
+    private CameraManager manager;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_shot);
+    public int getLayoutId() {
+        return R.layout.activity_shot;
+    }
+
+    @Override
+    public void onLoad() {
         initView();
     }
 
@@ -359,7 +364,7 @@ public class MyCameraActivity extends AppCompatActivity implements View.OnClickL
         setUpCameraOutputs(width, height);
         //配置变换
         configureTransform(width, height);
-        CameraManager manager = (CameraManager) this.getSystemService(Context.CAMERA_SERVICE);
+        manager = (CameraManager) this.getSystemService(Context.CAMERA_SERVICE);
         try {
             if (!mCameraOpenCloseLock.tryAcquire(2500, TimeUnit.MILLISECONDS)) {
                 throw new RuntimeException("Time out waiting to lock camera opening.");
@@ -438,10 +443,10 @@ public class MyCameraActivity extends AppCompatActivity implements View.OnClickL
                 //获取相机的相关参数
                 CameraCharacteristics characteristics = manager.getCameraCharacteristics(cameraId);
                 // 不使用前置摄像头。
-                Integer facing = characteristics.get(CameraCharacteristics.LENS_FACING);
-                if (facing != null && facing == CameraCharacteristics.LENS_FACING_FRONT) {
-                    continue;
-                }
+//                Integer facing = characteristics.get(CameraCharacteristics.LENS_FACING);
+//                if (facing != null && facing == CameraCharacteristics.LENS_FACING_FRONT) {
+//                    continue;
+//                }
                 StreamConfigurationMap map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
                 if (map == null) {
                     continue;
@@ -699,7 +704,7 @@ public class MyCameraActivity extends AppCompatActivity implements View.OnClickL
                                 mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE,
                                         CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
                                 // 闪光灯
-                                setAutoFlash(mPreviewRequestBuilder);
+                                //setAutoFlash(mPreviewRequestBuilder);
                                 // 最终开启相机预览并添加事件
                                 mPreviewRequest = mPreviewRequestBuilder.build();
                                 mCaptureSession.setRepeatingRequest(mPreviewRequest,
@@ -814,6 +819,15 @@ public class MyCameraActivity extends AppCompatActivity implements View.OnClickL
 
             }
             case R.id.clude_icon: {
+                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+                    return;
+                }
+                index++;
+                try {
+                    manager.openCamera("1", mStateCallback, mBackgroundHandler);
+                } catch (CameraAccessException e) {
+                    e.printStackTrace();
+                }
                 break;
             }
 
