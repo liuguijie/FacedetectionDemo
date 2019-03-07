@@ -36,7 +36,7 @@ public class MainActivity extends BaseActivity {
      * @param v
      */
     public void startOnclick(View v) {
-        Intent intent = new Intent(this, ShotActivity.class);
+        Intent intent = new Intent(this, MyCameraActivity.class);
         startActivity(intent);
     }
 }
