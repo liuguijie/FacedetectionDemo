@@ -634,7 +634,7 @@ public class MyCameraActivity extends BaseActivity implements View.OnClickListen
             mCaptureSession.capture(mPreviewRequestBuilder.build(), mCaptureCallback,
                     mBackgroundHandler);
             // 将相机恢复正常的预览状态。
-            mState = STATE_PICTURE_TAKEN;
+            mState = STATE_PREVIEW;
             // 打开连续取景模式
             mCaptureSession.setRepeatingRequest(mPreviewRequest, mCaptureCallback,
                     mBackgroundHandler);
@@ -704,7 +704,7 @@ public class MyCameraActivity extends BaseActivity implements View.OnClickListen
                             try {
                                 // 自动对焦
                                 mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER,
-                                        CaptureRequest.CONTROL_AF_TRIGGER_START);
+                                        CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
                                 // 闪光灯
                                 //setAutoFlash(mPreviewRequestBuilder);
                                 //最终开启相机预览并添加事件
