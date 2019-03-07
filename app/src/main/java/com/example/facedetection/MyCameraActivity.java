@@ -3,6 +3,7 @@ package com.example.facedetection;
 import android.Manifest;
 import android.app.Dialog;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.ImageFormat;
@@ -60,12 +61,10 @@ public class MyCameraActivity extends BaseActivity implements View.OnClickListen
      * 相机状态：显示相机预览。
      */
     private static final int STATE_PREVIEW = 0;
-
     /**
      * 相机状态：等待焦点被锁定。
      */
     private static final int STATE_WAITING_LOCK = 1;
-
     /**
      * 等待曝光被Precapture状态。
      */
@@ -75,7 +74,6 @@ public class MyCameraActivity extends BaseActivity implements View.OnClickListen
      * 相机状态：等待曝光的状态是不是Precapture。
      */
     private static final int STATE_WAITING_NON_PRECAPTURE = 3;
-
     /**
      * 相机状态：拍照。
      */
@@ -87,29 +85,16 @@ public class MyCameraActivity extends BaseActivity implements View.OnClickListen
     private File mFile;
     private HandlerThread mBackgroundThread;
     private Handler mBackgroundHandler;
-    private int index = 0;
-    /**
-     * Max preview width that is guaranteed by Camera2 API
-     */
+    private int position = 0;
     private static final int MAX_PREVIEW_WIDTH = 1920;
-
-    /**
-     * Max preview height that is guaranteed by Camera2 API
-     */
     private static final int MAX_PREVIEW_HEIGHT = 1080;
-
     private static final String TAG = "MyCameraActivity";
-    /**
-     * Conversion from screen rotation to JPEG orientation.
-     */
     private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
-    private static final int REQUEST_CAMERA_PERMISSION = 1;
-    private static final String FRAGMENT_DIALOG = "dialog";
     private int mState = STATE_PREVIEW;
     /**
      * 当前相机的ID。
      */
-    private String mCameraId;
+    private String mCameraId = "0";
 
     static {
         ORIENTATIONS.append(Surface.ROTATION_0, 90);
@@ -122,11 +107,10 @@ public class MyCameraActivity extends BaseActivity implements View.OnClickListen
      * 一个信号量以防止应用程序在关闭相机之前退出。
      */
     private Semaphore mCameraOpenCloseLock = new Semaphore(1);
-
     private ImageReader mImageReader;
     private Integer mSensorOrientation;
     private Size mPreviewSize;
-    private boolean mFlashSupported;
+    private boolean mFlashSupported;//闪光灯标识
     private CaptureRequest.Builder mPreviewRequestBuilder;
     private CameraCaptureSession mCaptureSession;
     private CaptureRequest mPreviewRequest;
@@ -134,7 +118,8 @@ public class MyCameraActivity extends BaseActivity implements View.OnClickListen
     private Context ctx;
     private ImageView reversal;
     private ImageView camera;
-
+    private CameraManager manager;
+    private CameraDevice mCameraDevice;
 
     @Override
     public int getLayoutId() {
@@ -150,8 +135,29 @@ public class MyCameraActivity extends BaseActivity implements View.OnClickListen
         camera = findViewById(R.id.camera);
         reversal.setOnClickListener(this);
         camera.setOnClickListener(this);
-        //创建文件
-        mFile = new File(Environment.getExternalStorageDirectory(), "first.jpg");
+    }
+
+    public void closeCamara() {
+        try {
+            mCameraOpenCloseLock.acquire();
+            if (mCaptureSession != null) {
+                mCaptureSession.close();
+                mCaptureSession = null;
+            }
+            if (mImageReader != null) {
+                mImageReader.close();
+                mImageReader = null;
+            }
+            if (mCameraDevice != null) {
+                mCameraDevice.close();
+                mCameraDevice = null;
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } finally {
+            mCameraOpenCloseLock.release();
+        }
+
     }
 
     /**
@@ -165,7 +171,7 @@ public class MyCameraActivity extends BaseActivity implements View.OnClickListen
             Log.e("SurfaceTextureListener", "onSurfaceTextureAvailable");
             //当TextureView可用的时候 打开预览摄像头
             Log.e(TAG, "width:" + width + "  height:" + height);
-            openCamera(width, height);
+            openCamera(width, height, mCameraId);
         }
 
         @Override
@@ -184,7 +190,6 @@ public class MyCameraActivity extends BaseActivity implements View.OnClickListen
 
     };
 
-    private CameraDevice mCameraDevice;
     /**
      * CameraDevice状态更改时被调用。
      */
@@ -229,7 +234,6 @@ public class MyCameraActivity extends BaseActivity implements View.OnClickListen
                     //预览状态
                     break;
                 }
-
                 case STATE_WAITING_LOCK: {
                     //等待对焦
                     Integer afState = result.get(CaptureResult.CONTROL_AF_STATE);
@@ -297,6 +301,8 @@ public class MyCameraActivity extends BaseActivity implements View.OnClickListen
         @Override
         public void onImageAvailable(ImageReader reader) {
             //当图片可得到的时候获取图片并保存
+            //创建文件
+            mFile = new File(Environment.getExternalStorageDirectory(), System.currentTimeMillis() + ".jpg");
             mBackgroundHandler.post(new ImageSaver(reader.acquireNextImage(), mFile));
         }
 
@@ -312,8 +318,6 @@ public class MyCameraActivity extends BaseActivity implements View.OnClickListen
          *  在这种情况下，我们可以打开相机并从这里开始预览（否则，我们等待SurfaceTextureListener中的表面准备就绪）。
          */
         checkSelfPermission();
-
-
     }
 
 
@@ -325,7 +329,7 @@ public class MyCameraActivity extends BaseActivity implements View.OnClickListen
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     if (mTextureView.isAvailable()) {
-                        openCamera(mTextureView.getWidth(), mTextureView.getHeight());
+                        openCamera(mTextureView.getWidth(), mTextureView.getHeight(), mCameraId);
                     } else {
                         mTextureView.setSurfaceTextureListener(mSurfaceTextureListener);
                     }
@@ -340,17 +344,17 @@ public class MyCameraActivity extends BaseActivity implements View.OnClickListen
      * @param width
      * @param height
      */
-    private void openCamera(int width, int height) {
+    private void openCamera(int width, int height, String cameraid) {
         //检查权限
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
                 != PackageManager.PERMISSION_GRANTED) {
             return;
         }
         //设置相机输出
-        setUpCameraOutputs(width, height);
+        setUpCameraOutputs(width, height, cameraid);
         //配置变换
         configureTransform(width, height);
-        CameraManager manager = (CameraManager) this.getSystemService(Context.CAMERA_SERVICE);
+        manager = (CameraManager) this.getSystemService(Context.CAMERA_SERVICE);
         try {
             if (!mCameraOpenCloseLock.tryAcquire(2500, TimeUnit.MILLISECONDS)) {
                 throw new RuntimeException("Time out waiting to lock camera opening.");
@@ -421,105 +425,100 @@ public class MyCameraActivity extends BaseActivity implements View.OnClickListen
      * @param width  相机预览的可用尺寸宽度
      * @param height 相机预览的可用尺寸的高度
      */
-    private void setUpCameraOutputs(int width, int height) {
+    private void setUpCameraOutputs(int width, int height, String camareid) {
         CameraManager manager = (CameraManager) this.getSystemService(Context.CAMERA_SERVICE);
         try {
-            //获取可用摄像头列表
-            for (String cameraId : manager.getCameraIdList()) {
-                //获取相机的相关参数
-                CameraCharacteristics characteristics = manager.getCameraCharacteristics(cameraId);
-                // 不使用前置摄像头。
-                Integer facing = characteristics.get(CameraCharacteristics.LENS_FACING);
-                if (facing != null && facing == CameraCharacteristics.LENS_FACING_FRONT) {
-                    continue;
-                }
-                StreamConfigurationMap map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
-                if (map == null) {
-                    continue;
-                }
-                // 对于静态图像拍摄，使用最大的可用尺寸。
-                Size largest = Collections.max(
-                        Arrays.asList(map.getOutputSizes(ImageFormat.JPEG)),
-                        new CompareSizesByArea());
-                mImageReader = ImageReader.newInstance(largest.getWidth(), largest.getHeight(),
-                        ImageFormat.JPEG, /*maxImages*/2);
-                //添加ImageAvailableListener事件，当图片可得到的时候回到，也就是点击拍照的时候
-                mImageReader.setOnImageAvailableListener(mOnImageAvailableListener, mBackgroundHandler);
-
-                // Find out if we need to swap dimension to get the preview size relative to sensor
-                // coordinate.
-                // 获取手机旋转的角度以调整图片的方向
-                int displayRotation = this.getWindowManager().getDefaultDisplay().getRotation();
-                //noinspection ConstantConditions
-                mSensorOrientation = characteristics.get(CameraCharacteristics.SENSOR_ORIENTATION);
-                boolean swappedDimensions = false;
-                switch (displayRotation) {
-                    case Surface.ROTATION_0:
-                    case Surface.ROTATION_180:
-                        // 横屏
-                        if (mSensorOrientation == 90 || mSensorOrientation == 270) {
-                            swappedDimensions = true;
-                        }
-                        break;
-                    case Surface.ROTATION_90:
-                    case Surface.ROTATION_270:
-                        // 竖屏
-                        if (mSensorOrientation == 0 || mSensorOrientation == 180) {
-                            swappedDimensions = true;
-                        }
-                        break;
-                    default:
-                        Log.e(TAG, "Display rotation is invalid: " + displayRotation);
-                }
-
-                Point displaySize = new Point();
-                this.getWindowManager().getDefaultDisplay().getSize(displaySize);
-                int rotatedPreviewWidth = width;
-                int rotatedPreviewHeight = height;
-                int maxPreviewWidth = displaySize.x;
-                int maxPreviewHeight = displaySize.y;
-
-                if (swappedDimensions) {
-                    rotatedPreviewWidth = height;
-                    rotatedPreviewHeight = width;
-                    maxPreviewWidth = displaySize.y;
-                    maxPreviewHeight = displaySize.x;
-                }
-
-                if (maxPreviewWidth > MAX_PREVIEW_WIDTH) {
-                    maxPreviewWidth = MAX_PREVIEW_WIDTH;
-                }
-
-                if (maxPreviewHeight > MAX_PREVIEW_HEIGHT) {
-                    maxPreviewHeight = MAX_PREVIEW_HEIGHT;
-                }
-
-                // Danger, W.R.! Attempting to use too large a preview size could  exceed the camera
-                // bus' bandwidth limitation, resulting in gorgeous previews but the storage of
-                // garbage capture data.
-                // 尝试使用太大的预览大小可能会超出摄像头的带宽限制
-                mPreviewSize = chooseOptimalSize(map.getOutputSizes(SurfaceTexture.class),
-                        rotatedPreviewWidth, rotatedPreviewHeight, maxPreviewWidth,
-                        maxPreviewHeight, largest);
-
-                // 我们将TextureView的宽高比与我们选择的预览大小相匹配。
-                int orientation = getResources().getConfiguration().orientation;
-                if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
-                    //横屏
-                    mTextureView.setAspectRatio(
-                            mPreviewSize.getWidth(), mPreviewSize.getHeight());
-                } else {
-                    // 竖屏
-                    mTextureView.setAspectRatio(
-                            mPreviewSize.getHeight(), mPreviewSize.getWidth());
-                }
-
-                // 检查闪光灯是否支持。
-                Boolean available = characteristics.get(CameraCharacteristics.FLASH_INFO_AVAILABLE);
-                mFlashSupported = available == null ? false : available;
-                mCameraId = cameraId;
+            CameraCharacteristics characteristics = manager.getCameraCharacteristics(camareid);
+            // 不使用前置摄像头。
+//                Integer facing = characteristics.get(CameraCharacteristics.LENS_FACING);
+//                if (facing != null && facing == CameraCharacteristics.LENS_FACING_FRONT) {
+//                    continue;
+//                }
+            StreamConfigurationMap map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
+            if (map == null) {
                 return;
             }
+            // 对于静态图像拍摄，使用最大的可用尺寸。
+            Size largest = Collections.max(
+                    Arrays.asList(map.getOutputSizes(ImageFormat.JPEG)),
+                    new CompareSizesByArea());
+            mImageReader = ImageReader.newInstance(largest.getWidth(), largest.getHeight(),
+                    ImageFormat.JPEG, 2);
+            //添加ImageAvailableListener事件，当图片可得到的时候回到，也就是点击拍照的时候
+            mImageReader.setOnImageAvailableListener(mOnImageAvailableListener, mBackgroundHandler);
+
+            // Find out if we need to swap dimension to get the preview size relative to sensor
+            // coordinate.
+            // 获取手机旋转的角度以调整图片的方向
+            int displayRotation = this.getWindowManager().getDefaultDisplay().getRotation();
+            //noinspection ConstantConditions
+            mSensorOrientation = characteristics.get(CameraCharacteristics.SENSOR_ORIENTATION);
+            boolean swappedDimensions = false;
+            switch (displayRotation) {
+                case Surface.ROTATION_0:
+                case Surface.ROTATION_180:
+                    // 横屏
+                    if (mSensorOrientation == 90 || mSensorOrientation == 270) {
+                        swappedDimensions = true;
+                    }
+                    break;
+                case Surface.ROTATION_90:
+                case Surface.ROTATION_270:
+                    // 竖屏
+                    if (mSensorOrientation == 0 || mSensorOrientation == 180) {
+                        swappedDimensions = true;
+                    }
+                    break;
+                default:
+                    Log.e(TAG, "Display rotation is invalid: " + displayRotation);
+            }
+
+            Point displaySize = new Point();
+            this.getWindowManager().getDefaultDisplay().getSize(displaySize);
+            int rotatedPreviewWidth = width;
+            int rotatedPreviewHeight = height;
+            int maxPreviewWidth = displaySize.x;
+            int maxPreviewHeight = displaySize.y;
+
+            if (swappedDimensions) {
+                rotatedPreviewWidth = height;
+                rotatedPreviewHeight = width;
+                maxPreviewWidth = displaySize.y;
+                maxPreviewHeight = displaySize.x;
+            }
+
+            if (maxPreviewWidth > MAX_PREVIEW_WIDTH) {
+                maxPreviewWidth = MAX_PREVIEW_WIDTH;
+            }
+
+            if (maxPreviewHeight > MAX_PREVIEW_HEIGHT) {
+                maxPreviewHeight = MAX_PREVIEW_HEIGHT;
+            }
+
+            // Danger, W.R.! Attempting to use too large a preview size could  exceed the camera
+            // bus' bandwidth limitation, resulting in gorgeous previews but the storage of
+            // garbage capture data.
+            // 尝试使用太大的预览大小可能会超出摄像头的带宽限制
+            mPreviewSize = chooseOptimalSize(map.getOutputSizes(SurfaceTexture.class),
+                    rotatedPreviewWidth, rotatedPreviewHeight, maxPreviewWidth,
+                    maxPreviewHeight, largest);
+
+            // 我们将TextureView的宽高比与我们选择的预览大小相匹配。
+            int orientation = getResources().getConfiguration().orientation;
+            if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                //横屏
+                mTextureView.setAspectRatio(
+                        mPreviewSize.getWidth(), mPreviewSize.getHeight());
+            } else {
+                // 竖屏
+                mTextureView.setAspectRatio(
+                        mPreviewSize.getHeight(), mPreviewSize.getWidth());
+            }
+
+            // 检查闪光灯是否支持。
+            Boolean available = characteristics.get(CameraCharacteristics.FLASH_INFO_AVAILABLE);
+            mFlashSupported = available == null ? false : available;
+            mCameraId = camareid;
         } catch (CameraAccessException e) {
             e.printStackTrace();
         } catch (NullPointerException e) {
@@ -546,7 +545,10 @@ public class MyCameraActivity extends BaseActivity implements View.OnClickListen
             // 使用相同的AE和AF模式作为预览。
             captureBuilder.set(CaptureRequest.CONTROL_AF_MODE,
                     CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
-            setAutoFlash(captureBuilder);
+            // 设置自动曝光模式
+            captureBuilder.set(CaptureRequest.CONTROL_AE_MODE,
+                    CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);
+            //setAutoFlash(captureBuilder);
 
             // 方向
             int rotation = this.getWindowManager().getDefaultDisplay().getRotation();
@@ -563,17 +565,26 @@ public class MyCameraActivity extends BaseActivity implements View.OnClickListen
                         @Override
                         public void run() {
                             Glide.with(ctx).load(mFile).into(shot_icon);
+                            shot_icon.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    Intent intent = new Intent(MyCameraActivity.this, ContrastActivity.class);
+                                    intent.putExtra("url", mFile);
+                                    startActivity(intent);
+                                }
+                            });
                             new CommomDialog(ctx, R.style.dialog, new CommomDialog.OnClickListener() {
                                 @Override
                                 public void onClick(Dialog dialog, boolean again) {
                                     if (again) {
-
+                                        Intent intent = new Intent(MyCameraActivity.this, ContrastActivity.class);
+                                        intent.putExtra("url", mFile);
+                                        startActivity(intent);
                                     }
                                 }
                             }).show();
                         }
                     });
-
                     unlockFocus();
                 }
             };
@@ -619,11 +630,11 @@ public class MyCameraActivity extends BaseActivity implements View.OnClickListen
             // 重置自动对焦
             mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER,
                     CameraMetadata.CONTROL_AF_TRIGGER_CANCEL);
-            setAutoFlash(mPreviewRequestBuilder);
+            //setAutoFlash(mPreviewRequestBuilder);
             mCaptureSession.capture(mPreviewRequestBuilder.build(), mCaptureCallback,
                     mBackgroundHandler);
             // 将相机恢复正常的预览状态。
-            mState = STATE_PREVIEW;
+            mState = STATE_PICTURE_TAKEN;
             // 打开连续取景模式
             mCaptureSession.setRepeatingRequest(mPreviewRequest, mCaptureCallback,
                     mBackgroundHandler);
@@ -646,6 +657,11 @@ public class MyCameraActivity extends BaseActivity implements View.OnClickListen
         return (ORIENTATIONS.get(rotation) + mSensorOrientation + 270) % 360;
     }
 
+    /**
+     * 开启闪光灯，将页面调用改方法的注释打开即可开启，此次不开启
+     *
+     * @param requestBuilder
+     */
     private void setAutoFlash(CaptureRequest.Builder requestBuilder) {
         if (mFlashSupported) {
             requestBuilder.set(CaptureRequest.CONTROL_AE_MODE,
@@ -686,12 +702,12 @@ public class MyCameraActivity extends BaseActivity implements View.OnClickListen
                             // 会话准备好后，我们开始显示预览
                             mCaptureSession = cameraCaptureSession;
                             try {
-                                // 自动对焦应
-                                mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE,
-                                        CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
+                                // 自动对焦
+                                mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER,
+                                        CaptureRequest.CONTROL_AF_TRIGGER_START);
                                 // 闪光灯
-                                setAutoFlash(mPreviewRequestBuilder);
-                                // 最终开启相机预览并添加事件
+                                //setAutoFlash(mPreviewRequestBuilder);
+                                //最终开启相机预览并添加事件
                                 mPreviewRequest = mPreviewRequestBuilder.build();
                                 mCaptureSession.setRepeatingRequest(mPreviewRequest,
                                         mCaptureCallback, mBackgroundHandler);
@@ -703,7 +719,6 @@ public class MyCameraActivity extends BaseActivity implements View.OnClickListen
                         @Override
                         public void onConfigureFailed(
                                 @NonNull CameraCaptureSession cameraCaptureSession) {
-                            showToast("Failed");
                         }
                     }, null
             );
@@ -712,23 +727,8 @@ public class MyCameraActivity extends BaseActivity implements View.OnClickListen
         }
     }
 
-    /**
-     * Shows a {@link Toast} on the UI thread.
-     *
-     * @param text The message to show
-     */
-    private void showToast(final String text) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                Toast.makeText(MyCameraActivity.this, text, Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
     private static Size chooseOptimalSize(Size[] choices, int textureViewWidth,
                                           int textureViewHeight, int maxWidth, int maxHeight, Size aspectRatio) {
-
         // Collect the supported resolutions that are at least as big as the preview Surface
         List<Size> bigEnough = new ArrayList<>();
         // Collect the supported resolutions that are smaller than the preview Surface
@@ -775,7 +775,7 @@ public class MyCameraActivity extends BaseActivity implements View.OnClickListen
                     100);
         } else {
             if (mTextureView.isAvailable()) {
-                openCamera(mTextureView.getWidth(), mTextureView.getHeight());
+                openCamera(mTextureView.getWidth(), mTextureView.getHeight(), mCameraId);
             } else {
                 mTextureView.setSurfaceTextureListener(mSurfaceTextureListener);
             }
@@ -802,9 +802,23 @@ public class MyCameraActivity extends BaseActivity implements View.OnClickListen
             case R.id.camera: {
                 takePicture();
                 break;
-
             }
             case R.id.clude_icon: {
+                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+                    return;
+                }
+                position++;
+                if (position % 2 == 0) {
+                    mCameraId = "0";
+                } else if (position % 2 == 1) {
+                    mCameraId = "1";
+                }
+                closeCamara();
+                if (mTextureView.isAvailable()) {
+                    openCamera(mTextureView.getWidth(), mTextureView.getHeight(), mCameraId);
+                } else {
+                    mTextureView.setSurfaceTextureListener(mSurfaceTextureListener);
+                }
                 break;
             }
 
