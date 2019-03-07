@@ -23,7 +23,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".ShotActivity" />
+        <activity android:name=".ContrastActivity" />
         <activity android:name=".MyCameraActivity"/>
     </application>
 </manifest>
