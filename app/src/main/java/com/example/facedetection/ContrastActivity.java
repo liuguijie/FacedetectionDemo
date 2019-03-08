@@ -1,22 +1,15 @@
 package com.example.facedetection;
 
 import android.content.Intent;
-import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.ListAdapter;
 import android.widget.TextView;
-
 import com.bumptech.glide.Glide;
-import com.example.facedetection.adapter.PictureListAdapter;
 import com.example.facedetection.base.BaseActivity;
 import com.example.facedetection.bean.PictureAddress;
-
-import org.json.JSONArray;
-
 import java.util.ArrayList;
 import java.util.List;
 

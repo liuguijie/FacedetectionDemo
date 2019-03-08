@@ -18,14 +18,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="1da8a77a-c496-4e40-b53d-f7d265fe884c" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/app/src/main/java/com/example/facedetection/bean/PictureAddress.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/AndroidManifest.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/AndroidManifest.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/facedetection/ContrastActivity.java" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/facedetection/ContrastActivity.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/facedetection/MyCameraActivity.java" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/facedetection/MyCameraActivity.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/facedetection/Util.java" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/facedetection/Util.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_contrast.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_contrast.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/item_view.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/item_view.xml" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -59,7 +53,7 @@
         <counts>
           <entry key="gitignore" value="3" />
           <entry key="gradle" value="5" />
-          <entry key="java" value="42" />
+          <entry key="java" value="43" />
           <entry key="png" value="1" />
           <entry key="properties" value="3" />
           <entry key="xml" value="56" />
@@ -69,7 +63,7 @@
         <counts>
           <entry key="Groovy" value="5" />
           <entry key="Image" value="1" />
-          <entry key="JAVA" value="42" />
+          <entry key="JAVA" value="43" />
           <entry key="PLAIN_TEXT" value="3" />
           <entry key="Properties" value="3" />
           <entry key="XML" value="56" />
@@ -79,14 +73,14 @@
         <counts>
           <entry key="dummy" value="15" />
           <entry key="gradle" value="1" />
-          <entry key="java" value="4241" />
+          <entry key="java" value="4270" />
           <entry key="xml" value="1882" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
           <entry key="Groovy" value="1" />
-          <entry key="JAVA" value="4241" />
+          <entry key="JAVA" value="4270" />
           <entry key="PLAIN_TEXT" value="15" />
           <entry key="XML" value="1882" />
         </counts>
@@ -98,8 +92,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/app/src/main/java/com/example/facedetection/ContrastActivity.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="170">
-              <caret line="26" column="41" selection-start-line="26" selection-end-line="27" />
+            <state relative-caret-position="303">
+              <caret line="74" column="5" selection-start-line="74" selection-start-column="5" selection-end-line="74" selection-end-column="5" />
               <folding>
                 <element signature="imports" expanded="true" />
                 <element signature="e#1100#1121#0" expanded="true" />
@@ -111,11 +105,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/app/src/main/java/com/example/facedetection/Util.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="70">
-              <caret line="30" column="38" selection-start-line="30" selection-start-column="38" selection-end-line="30" selection-end-column="38" />
-              <folding>
-                <element signature="imports" expanded="true" />
-              </folding>
+            <state relative-caret-position="-1057">
+              <caret line="6" column="53" selection-start-line="6" selection-start-column="53" selection-end-line="6" selection-end-column="53" />
             </state>
           </provider>
         </entry>
@@ -2399,16 +2390,16 @@
         <option value="$PROJECT_DIR$/app/src/main/java/com/example/facedetection/MyCameraActivity.java" />
         <option value="$PROJECT_DIR$/app/src/main/res/layout/activity_contrast.xml" />
         <option value="$PROJECT_DIR$/app/src/main/res/layout/item_view.xml" />
-        <option value="$PROJECT_DIR$/app/src/main/java/com/example/facedetection/ContrastActivity.java" />
         <option value="$PROJECT_DIR$/app/src/main/java/com/example/facedetection/bean/ImageBean.java" />
         <option value="$PROJECT_DIR$/app/src/main/java/com/example/facedetection/bean/PictureAddress.java" />
+        <option value="$PROJECT_DIR$/app/src/main/java/com/example/facedetection/ContrastActivity.java" />
         <option value="$PROJECT_DIR$/app/src/main/java/com/example/facedetection/Util.java" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="433" />
-    <option name="y" value="12" />
+    <option name="x" value="422" />
+    <option name="y" value="1" />
     <option name="width" value="1440" />
     <option name="height" value="1025" />
   </component>
@@ -2593,10 +2584,9 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="433" y="12" width="1440" height="1025" extended-state="0" />
-    <editor active="true" />
     <layout>
       <window_info id="Captures" order="0" side_tool="true" weight="0.25" />
-      <window_info active="true" content_ui="combo" id="Project" order="1" sideWeight="0.49933776" visible="true" weight="0.17349927" />
+      <window_info content_ui="combo" id="Project" order="1" sideWeight="0.49933776" visible="true" weight="0.17349927" />
       <window_info id="Structure" order="2" sideWeight="0.50066227" side_tool="true" weight="0.110939905" />
       <window_info id="Favorites" order="3" side_tool="true" />
       <window_info id="Build Variants" order="4" side_tool="true" />
@@ -2606,11 +2596,11 @@
       <window_info anchor="bottom" id="Run" order="0" />
       <window_info anchor="bottom" id="Logcat" order="1" weight="0.6285363" />
       <window_info anchor="bottom" id="TODO" order="2" weight="0.32883435" />
-      <window_info anchor="bottom" id="Debug" order="3" weight="0.32650602" />
-      <window_info anchor="bottom" id="Terminal" order="4" weight="0.32089552" />
+      <window_info anchor="bottom" id="Debug" order="3" weight="0.4939759" />
+      <window_info active="true" anchor="bottom" id="Terminal" order="4" visible="true" weight="0.32048193" />
       <window_info anchor="bottom" id="Event Log" order="5" side_tool="true" weight="0.32883435" />
       <window_info anchor="bottom" id="Version Control" order="6" />
-      <window_info anchor="bottom" id="Build" order="7" weight="0.34649682" />
+      <window_info anchor="bottom" id="Build" order="7" weight="0.32048193" />
       <window_info anchor="bottom" id="Find" order="8" weight="0.3282532" />
       <window_info anchor="bottom" id="Android Profiler" order="9" />
       <window_info anchor="right" id="Device File Explorer" order="0" side_tool="true" weight="0.32973805" />
@@ -2850,17 +2840,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/app/src/main/java/com/example/facedetection/ContrastActivity.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="170">
-          <caret line="26" column="41" selection-start-line="26" selection-end-line="27" />
-          <folding>
-            <element signature="imports" expanded="true" />
-            <element signature="e#1100#1121#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/app/src/main/java/com/example/facedetection/bean/PictureAddress.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="40">
@@ -2878,13 +2857,21 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/app/src/main/java/com/example/facedetection/Util.java">
+    <entry file="file://$PROJECT_DIR$/app/src/main/java/com/example/facedetection/ContrastActivity.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="70">
-          <caret line="30" column="38" selection-start-line="30" selection-start-column="38" selection-end-line="30" selection-end-column="38" />
+        <state relative-caret-position="303">
+          <caret line="74" column="5" selection-start-line="74" selection-start-column="5" selection-end-line="74" selection-end-column="5" />
           <folding>
             <element signature="imports" expanded="true" />
+            <element signature="e#1100#1121#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/src/main/java/com/example/facedetection/Util.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-1057">
+          <caret line="6" column="53" selection-start-line="6" selection-start-column="53" selection-end-line="6" selection-end-column="53" />
         </state>
       </provider>
     </entry>
