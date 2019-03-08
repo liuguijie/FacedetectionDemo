@@ -119,6 +119,7 @@ public class MyCameraActivity extends BaseActivity implements View.OnClickListen
     private ImageView camera;
     private CameraManager manager;
     private CameraDevice mCameraDevice;
+    private File file;
 
     @Override
     public int getLayoutId() {
@@ -307,8 +308,12 @@ public class MyCameraActivity extends BaseActivity implements View.OnClickListen
         public void onImageAvailable(ImageReader reader) {
             //当图片可得到的时候获取图片并保存
             //创建文件
-            mFile = new File(Environment.getExternalStorageDirectory(), "first/"+System.currentTimeMillis() + ".jpg");
-            mBackgroundHandler.post(new ImageSaver(reader.acquireNextImage(), mFile));
+            mFile = new File(Environment.getExternalStorageDirectory().toString() + "/camera2/");
+            if (!mFile.exists()) {
+                mFile.mkdirs();
+            }
+            file = new File(mFile, System.currentTimeMillis() + ".jpg");
+            mBackgroundHandler.post(new ImageSaver(reader.acquireNextImage(), file));
         }
 
     };
@@ -317,7 +322,6 @@ public class MyCameraActivity extends BaseActivity implements View.OnClickListen
     @Override
     public void onResume() {
         super.onResume();
-
     }
 
 
@@ -564,12 +568,13 @@ public class MyCameraActivity extends BaseActivity implements View.OnClickListen
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            Glide.with(ctx).load(mFile).into(shot_icon);
+                            final String path = file.getPath();
+                            Glide.with(ctx).load(file).into(shot_icon);
                             shot_icon.setOnClickListener(new View.OnClickListener() {
                                 @Override
                                 public void onClick(View v) {
                                     Intent intent = new Intent(MyCameraActivity.this, ContrastActivity.class);
-                                    intent.putExtra("url", mFile);
+                                    intent.putExtra("url", path);
                                     startActivity(intent);
                                 }
                             });
@@ -578,7 +583,7 @@ public class MyCameraActivity extends BaseActivity implements View.OnClickListen
                                 public void onClick(Dialog dialog, boolean again) {
                                     if (again) {
                                         Intent intent = new Intent(MyCameraActivity.this, ContrastActivity.class);
-                                        intent.putExtra("url", mFile);
+                                        intent.putExtra("url", path);
                                         startActivity(intent);
                                     }
                                 }
@@ -769,6 +774,9 @@ public class MyCameraActivity extends BaseActivity implements View.OnClickListen
         }
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             permissionLists.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        }
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            permissionLists.add(Manifest.permission.READ_EXTERNAL_STORAGE);
         }
         if (!permissionLists.isEmpty()) {// 说明肯定有拒绝的权限
             ActivityCompat.requestPermissions(this, permissionLists.toArray(new String[permissionLists.size()]),

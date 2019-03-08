@@ -1,12 +1,18 @@
 package com.example.facedetection;
 
 import android.app.Activity;
+import android.app.ListActivity;
 import android.graphics.Point;
+
+import com.example.facedetection.adapter.PictureListAdapter;
+import com.example.facedetection.bean.PictureAddress;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Util {
     //获取屏幕的宽度
@@ -18,10 +24,11 @@ public class Util {
 
     /**
      * 获取指定目录内所有文件路径
+     *
      * @param dirPath 需要查询的文件目录
-     * @param _type 查询类型，比如mp3什么的
+     * @param _type   查询类型，比如mp3什么的
      */
-    public static JSONArray getAllFiles(String dirPath, String _type) {
+    public static List<PictureAddress> getAllFiles(String dirPath, String _type) {
         File f = new File(dirPath);
         if (!f.exists()) {//判断路径是否存在
             return null;
@@ -29,30 +36,24 @@ public class Util {
 
         File[] files = f.listFiles();
 
-        if(files==null){//判断权限
+        if (files == null) {//判断权限
             return null;
         }
-
-        JSONArray fileList = new JSONArray();
+        List<PictureAddress> list = new ArrayList<>();
         for (File _file : files) {//遍历目录
-            if(_file.isFile() && _file.getName().endsWith(_type)){
-                String _name=_file.getName();
+            if (_file.isFile() && _file.getName().endsWith(_type)) {
+                String _name = _file.getName();
                 String filePath = _file.getAbsolutePath();//获取文件路径
-                String fileName = _file.getName().substring(0,_name.length()-4);//获取文件名
-//                Log.d("LOGCAT","fileName:"+fileName);
-//                Log.d("LOGCAT","filePath:"+filePath);
-                try {
-                    JSONObject _fInfo = new JSONObject();
-                    _fInfo.put("name", fileName);
-                    _fInfo.put("path", filePath);
-                    fileList.put(_fInfo);
-                }catch (Exception e){
-                }
-            } else if(_file.isDirectory()){//查询子目录
+                String fileName = _file.getName().substring(0, _name.length() - 4);//获取文件名
+                PictureAddress imageBean = new PictureAddress();
+                imageBean.setName(fileName);
+                imageBean.setPath(filePath);
+                list.add(imageBean);
+            } else if (_file.isDirectory()) {//查询子目录
                 getAllFiles(_file.getAbsolutePath(), _type);
-            } else{
+            } else {
             }
         }
-        return fileList;
+        return list;
     }
 }

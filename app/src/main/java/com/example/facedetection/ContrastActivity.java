@@ -13,6 +13,9 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 import com.example.facedetection.adapter.PictureListAdapter;
 import com.example.facedetection.base.BaseActivity;
+import com.example.facedetection.bean.PictureAddress;
+
+import org.json.JSONArray;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,9 +25,10 @@ public class ContrastActivity extends BaseActivity {
 
     private ImageView take_icon;
     private RecyclerView recycler;
-    private List<String> urlList=new ArrayList<>();
+    private List<String> urlList = new ArrayList<>();
     private Button preservation;
     private Button newly_build;
+    private String url;
 
     @Override
     public int getLayoutId() {
@@ -43,19 +47,31 @@ public class ContrastActivity extends BaseActivity {
 
 
         Intent intent = getIntent();
-        String url = intent.getStringExtra("url");
-        if (url != null) {
-            Glide.with(this).load(url).into(take_icon);
+        url = intent.getStringExtra("url");
+        if (url == null) {
+            return;
         }
-
+        Glide.with(this).load(url).into(take_icon);
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         layoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
         recycler.setLayoutManager(layoutManager);
+        ergodicImage();
 
-        for (int i = 0; i < 5; i++) {
-            urlList.add(url);
+        // recycler.setAdapter(new PictureListAdapter(this, urlList));
+    }
+
+    /**
+     * 遍历指定文件夹
+     */
+    public void ergodicImage() {
+        String[] split = url.split("camera2");
+        List<PictureAddress> imageList = Util.getAllFiles(split[0] + "camera2", "jpg");
+        if (imageList == null || imageList.size() == 0) {
+            return;
         }
-        recycler.setAdapter(new PictureListAdapter(this, urlList));
+        for (int i = 0; i < imageList.size(); i++) {
+
+        }
     }
 
 }
