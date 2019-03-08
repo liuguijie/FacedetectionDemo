@@ -302,7 +302,7 @@ public class MyCameraActivity extends BaseActivity implements View.OnClickListen
         public void onImageAvailable(ImageReader reader) {
             //当图片可得到的时候获取图片并保存
             //创建文件
-            mFile = new File(Environment.getExternalStorageDirectory(), System.currentTimeMillis() + ".jpg");
+            mFile = new File(Environment.getExternalStorageDirectory(), "first/"+System.currentTimeMillis() + ".jpg");
             mBackgroundHandler.post(new ImageSaver(reader.acquireNextImage(), mFile));
         }
 
