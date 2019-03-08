@@ -1,6 +1,8 @@
 package com.example.facedetection;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
+import android.content.Context;
 import android.graphics.Point;
 
 import org.json.JSONArray;
@@ -55,4 +57,42 @@ public class Util {
         }
         return fileList;
     }
+
+    static ProgressDialog progressDlg = null;
+
+    /**
+     * 启动进度条
+     *
+     * @param strMessage
+     *            进度条显示的信息
+     * @param str
+     *            进度条标题的信息
+     */
+    public static void showProgressDlg(String strMessage,String str, Context ctx) {
+
+        if (null == progressDlg) {
+            progressDlg = new ProgressDialog(ctx);
+            //设置进度条样式
+            progressDlg.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+            //设置进度条标题
+            progressDlg.setTitle(str);
+            //提示的消息
+            progressDlg.setMessage(strMessage);
+            progressDlg.setIndeterminate(false);
+            progressDlg.setCancelable(false);
+            progressDlg.setIcon(R.mipmap.ic_launcher);
+            progressDlg.show();
+        }
+    }
+
+    /**
+     * 结束进度条
+     */
+    public static void stopProgressDlg() {
+        if (null != progressDlg) {
+            progressDlg.dismiss();
+            progressDlg = null;
+        }
+    }
+
 }
