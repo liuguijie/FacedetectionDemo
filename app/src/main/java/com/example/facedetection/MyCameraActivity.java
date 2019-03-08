@@ -36,7 +36,6 @@ import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
 import android.widget.ImageView;
-import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.example.facedetection.base.BaseActivity;
@@ -135,6 +134,12 @@ public class MyCameraActivity extends BaseActivity implements View.OnClickListen
         camera = findViewById(R.id.camera);
         reversal.setOnClickListener(this);
         camera.setOnClickListener(this);
+        startBackgroundThread();
+        /**
+         *  当屏幕关闭并重新打开时，SurfaceTexture已经可用，“onSurfaceTextureAvailable”将不被调用。
+         *  在这种情况下，我们可以打开相机并从这里开始预览（否则，我们等待SurfaceTextureListener中的表面准备就绪）。
+         */
+        checkSelfPermission();
     }
 
     public void closeCamara() {
@@ -312,12 +317,7 @@ public class MyCameraActivity extends BaseActivity implements View.OnClickListen
     @Override
     public void onResume() {
         super.onResume();
-        startBackgroundThread();
-        /**
-         *  当屏幕关闭并重新打开时，SurfaceTexture已经可用，“onSurfaceTextureAvailable”将不被调用。
-         *  在这种情况下，我们可以打开相机并从这里开始预览（否则，我们等待SurfaceTextureListener中的表面准备就绪）。
-         */
-        checkSelfPermission();
+
     }
 
 
