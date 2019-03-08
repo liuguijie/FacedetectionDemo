@@ -13,15 +13,51 @@
         android:layout_gravity="center" />
 
     <TextView
-        android:textColor="@color/black"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
         android:text="@string/tv_be_similar"
+        android:textColor="@color/black"
         android:textSize="14sp"
         android:textStyle="bold" />
+
     <android.support.v7.widget.RecyclerView
         android:id="@+id/recycler"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content" />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="bottom">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:background="@color/tv_start_color"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/newly_build"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_margin="20dp"
+                android:layout_weight="1"
+                android:background="@color/white"
+                android:text="@string/news"
+                android:textColor="@color/black" />
+
+            <Button
+                android:id="@+id/preservation"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_margin="20dp"
+                android:layout_weight="1"
+                android:background="@color/white"
+                android:text="@string/save"
+                android:textColor="@color/black" />
+        </LinearLayout>
+    </RelativeLayout>
 </LinearLayout>

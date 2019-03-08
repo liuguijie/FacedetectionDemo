@@ -6,4 +6,6 @@
     <string name="dialog_continue">继续</string>
     <string name="tv_portfollo">Portfollo</string>
     <string name="tv_be_similar">和图片中的人物相似的有</string>
+    <string name="news">新建</string>
+    <string name="save">保存</string>
 </resources>

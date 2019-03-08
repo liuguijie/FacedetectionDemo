@@ -5,6 +5,7 @@ import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListAdapter;
 import android.widget.TextView;
@@ -22,6 +23,8 @@ public class ContrastActivity extends BaseActivity {
     private ImageView take_icon;
     private RecyclerView recycler;
     private List<String> urlList=new ArrayList<>();
+    private Button preservation;
+    private Button newly_build;
 
     @Override
     public int getLayoutId() {
@@ -32,6 +35,8 @@ public class ContrastActivity extends BaseActivity {
     public void onLoad() {
         findViewById(R.id.clude_icon).setVisibility(View.GONE);
         TextView title = findViewById(R.id.clude_title);
+        preservation = findViewById(R.id.preservation);
+        newly_build = findViewById(R.id.newly_build);
         take_icon = findViewById(R.id.take_image);
         recycler = findViewById(R.id.recycler);
         title.setText(R.string.tv_portfollo);

@@ -1,15 +1,11 @@
 package com.example.facedetection;
 
 import android.content.Intent;
-import android.graphics.Point;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-
 import com.example.facedetection.base.BaseActivity;
 
-
-//付智焱第一次提交测试
 public class MainActivity extends BaseActivity {
     @Override
     public int getLayoutId() {
