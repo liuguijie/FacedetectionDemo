@@ -312,7 +312,7 @@ public class MyCameraActivity extends BaseActivity implements View.OnClickListen
             if (!mFile.exists()) {
                 mFile.mkdirs();
             }
-            file = new File(mFile, System.currentTimeMillis() + ".jpg");
+            file = new File(mFile, System.currentTimeMillis() + ".JPG");
             mBackgroundHandler.post(new ImageSaver(reader.acquireNextImage(), file));
         }
 
@@ -568,7 +568,7 @@ public class MyCameraActivity extends BaseActivity implements View.OnClickListen
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            final String path = file.getPath();
+                            final String path = file.getAbsolutePath();
                             Glide.with(ctx).load(file).into(shot_icon);
                             shot_icon.setOnClickListener(new View.OnClickListener() {
                                 @Override
@@ -585,6 +585,7 @@ public class MyCameraActivity extends BaseActivity implements View.OnClickListen
                                         Intent intent = new Intent(MyCameraActivity.this, ContrastActivity.class);
                                         intent.putExtra("url", path);
                                         startActivity(intent);
+                                        dialog.dismiss();
                                     }
                                 }
                             }).show();
