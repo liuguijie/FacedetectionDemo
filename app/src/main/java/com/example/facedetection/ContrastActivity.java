@@ -13,6 +13,7 @@ import com.bumptech.glide.Glide;
 import com.example.facedetection.adapter.PictureListAdapter;
 import com.example.facedetection.base.BaseActivity;
 import com.example.facedetection.bean.PictureAddress;
+import com.example.facedetection.face.FaceApi;
 import com.example.facedetection.face.FacePPApi;
 import com.megvii.facepp.api.IFacePPCallBack;
 import com.megvii.facepp.api.bean.CompareResponse;
@@ -82,7 +83,7 @@ public class ContrastActivity extends BaseActivity {
         }
         byte[] data1 = Util.getimage(url);
         //遍历识别
-        for (int i = 0; i < imageList.size(); i++) {
+        for (int i = imageList.size()-1; i >=0; i--) {
             String path = imageList.get(i).getPath();
             byte[] data2 = Util.getimage(path);
             faceData(data1, data2, path);
@@ -92,6 +93,36 @@ public class ContrastActivity extends BaseActivity {
     }
 
     public void faceData(byte[] data1, byte[] data2, final String path) {
+        FaceApi faceApi = new FaceApi();
+        HashMap<String, String> params = new HashMap<>();
+        params.put("api_key","IzPz7W9NNprFzJvOlA8g-BHFjfhJZPNC");
+        params.put("api_secret","iguAgm6pLRAOUqCmenagPcO3qCy5fI_I");
+        faceApi.compare(params, data1, data2, new IFacePPCallBack<CompareResponse>() {
+            @Override
+            public void onSuccess(CompareResponse compareResponse) {
+                try {
+                    JSONObject js = new JSONObject(compareResponse.toString());
+                    String confidence = js.getString("confidence");//获取相似值
+                    if (Double.valueOf(confidence) > 80) {
+                        thanList.add(path);
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public void onFailed(String s) {
+                try {
+                    JSONObject js = new JSONObject(s);
+                    String error = js.getString("error_message");
+                    Log.e("ERROR", error);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
         FacePPApi facePPApi = new FacePPApi("IzPz7W9NNprFzJvOlA8g-BHFjfhJZPNC", "iguAgm6pLRAOUqCmenagPcO3qCy5fI_I");
         facePPApi.compare(new HashMap<String, String>(), data1, data2, new IFacePPCallBack<CompareResponse>() {
             @Override
