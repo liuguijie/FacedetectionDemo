@@ -111,8 +111,8 @@ public class ContrastActivity extends BaseActivity {
         OkGo.<String>post("https://api-cn.faceplusplus.com/facepp/v3/compare")
                 .tag(this)
                 .isMultipart(true)
-                .params("apiKey", "IzPz7W9NNprFzJvOlA8g-BHFjfhJZPNC")
-                .params("apiSecret", "iguAgm6pLRAOUqCmenagPcO3qCy5fI_I")
+                .params("api_key", "IzPz7W9NNprFzJvOlA8g-BHFjfhJZPNC")
+                .params("api_secret", "iguAgm6pLRAOUqCmenagPcO3qCy5fI_I")
                 .params("image_url1", data1)
                 .params("image_url2", "/sdcard/WeiShoot/catch/1552366386103.JPG")
                 .execute(new StringCallback() {
