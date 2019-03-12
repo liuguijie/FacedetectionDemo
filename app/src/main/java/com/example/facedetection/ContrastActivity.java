@@ -14,6 +14,9 @@ import com.example.facedetection.adapter.PictureListAdapter;
 import com.example.facedetection.base.BaseActivity;
 import com.example.facedetection.bean.PictureAddress;
 import com.example.facedetection.face.FacePPApi;
+import com.lzy.okgo.OkGo;
+import com.lzy.okgo.callback.StringCallback;
+import com.lzy.okgo.model.Response;
 import com.megvii.facepp.api.IFacePPCallBack;
 import com.megvii.facepp.api.bean.CompareResponse;
 
@@ -23,6 +26,8 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+
+import okhttp3.OkHttpClient;
 
 /**
  * 上个页面拍照点击继续跳转此页面会卡住几秒才会跳转，按理因该是页面先出来再执行网络请求，现在没显示页面就执行了
@@ -37,6 +42,9 @@ public class ContrastActivity extends BaseActivity {
     private Button preservation;
     private Button newly_build;
     private String url;
+    private int flag = 0, listSize;
+    HashMap<String, String> hashMap = new HashMap<>();
+    private List<String> imageUrl2List = new ArrayList<>();
 
     @Override
     public int getLayoutId() {
@@ -71,29 +79,53 @@ public class ContrastActivity extends BaseActivity {
         ergodicImage();
     }
 
+    String data1;
+
     /**
      * 遍历对比
      */
     public void ergodicImage() {
+
         String[] split = url.split("camera2");
         List<PictureAddress> imageList = Util.getAllFiles(split[0] + "camera2", "jpg");
         if (imageList == null || imageList.size() == 0) {
             return;
         }
-        byte[] data1 = Util.getimage(url);
+        data1 = BitmapUtils.compressImageUpload(url);
+        listSize = imageList.size();
         //遍历识别
         for (int i = 0; i < imageList.size(); i++) {
-            String path = imageList.get(i).getPath();
-            byte[] data2 = Util.getimage(path);
-            faceData(data1, data2, path);
+            String path = BitmapUtils.compressImageUpload(imageList.get(i).getPath());
+            imageUrl2List.add(path);
+            faceData(data1, path, path);
         }
         recycler.setAdapter(new PictureListAdapter(this, thanList));
 
     }
 
-    public void faceData(byte[] data1, byte[] data2, final String path) {
+    //对比
+    public void compare(int i) {
+        OkGo.<String>post("https://api-cn.faceplusplus.com/facepp/v3/compare")
+                .tag(this)
+                .isMultipart(true)
+                .params("apiKey", "IzPz7W9NNprFzJvOlA8g-BHFjfhJZPNC")
+                .params("apiSecret", "iguAgm6pLRAOUqCmenagPcO3qCy5fI_I")
+                .params("image_url1", data1)
+                .params("image_url2", imageUrl2List.get(i))
+                .execute(new StringCallback() {
+                    @Override
+                    public void onSuccess(Response<String> response) {
+                        if (response.isSuccessful()) {
+                            flag++;
+                            compare(flag);
+                        }
+                    }
+                });
+    }
+
+    public void faceData(String data1, String data2, final String path) {
         FacePPApi facePPApi = new FacePPApi("IzPz7W9NNprFzJvOlA8g-BHFjfhJZPNC", "iguAgm6pLRAOUqCmenagPcO3qCy5fI_I");
-        facePPApi.compare(new HashMap<String, String>(), data1, data2, new IFacePPCallBack<CompareResponse>() {
+        facePPApi.compare(hashMap, new IFacePPCallBack<CompareResponse>() {
             @Override
             public void onSuccess(CompareResponse compareResponse) {
                 try {
