@@ -11,21 +11,16 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.example.facedetection.BitmapUtils;
 import com.example.facedetection.R;
 import com.example.facedetection.Util;
 import com.example.facedetection.adapter.PictureListAdapter;
 import com.example.facedetection.base.BaseActivity;
 import com.example.facedetection.bean.PictureAddress;
-import com.example.facedetection.face.FaceApi;
-import com.megvii.facepp.api.IFacePPCallBack;
-import com.megvii.facepp.api.bean.CompareResponse;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.nio.channels.InterruptedByTimeoutException;
+import com.lzy.okgo.OkGo;
+import com.lzy.okgo.callback.StringCallback;
+import com.lzy.okgo.model.Response;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -41,6 +36,9 @@ public class ContrastActivity extends BaseActivity implements View.OnClickListen
     private Button preservation;
     private Button newly_build;
     private String url;
+    private int flag = 0;
+    private List<String> imageUrl2List = new ArrayList<>();
+    private String path1;
 
     @Override
     public int getLayoutId() {
@@ -64,64 +62,62 @@ public class ContrastActivity extends BaseActivity implements View.OnClickListen
         Glide.with(this).load(url).into(take_icon);
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         layoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
-
+        recycler.setLayoutManager(layoutManager);
         preservation.setOnClickListener(this);
         newly_build.setOnClickListener(this);
+
+        ergodicImage();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
-        layoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
-        recycler.setLayoutManager(layoutManager);
-        ergodicImage();
+
     }
+
 
     /**
      * 遍历对比
      */
     public void ergodicImage() {
+
         String[] split = url.split("camera2");
         List<PictureAddress> imageList = Util.getAllFiles(split[0] + "camera2", ".jpg");
         if (imageList == null || imageList.size() == 0) {
             return;
         }
-        byte[] data1 = Util.compressIma(url);
+        path1 = BitmapUtils.compressImageUpload(url);
         //遍历识别
-        for (int i = imageList.size() - 1; i >= 0; i--) {
-            String path = imageList.get(i).getPath();
-            byte[] data2 = Util.compressIma(path);
-            faceData(data1, data2, path);
+        for (int i = 0; i < imageList.size(); i++) {
+            String path = BitmapUtils.compressImageUpload(imageList.get(i).getPath());
+            imageUrl2List.add(path);
+            compare(i);
         }
         recycler.setAdapter(new PictureListAdapter(this, thanList));
 
     }
 
-    public void faceData(byte[] data1, byte[] data2, final String path) {
-        FaceApi faceApi = new FaceApi();
-        HashMap<String, String> params = new HashMap<>();
-        params.put("api_key", "IzPz7W9NNprFzJvOlA8g-BHFjfhJZPNC");
-        params.put("api_secret", "iguAgm6pLRAOUqCmenagPcO3qCy5fI_I");
-        faceApi.compare(params, data1, data2, new IFacePPCallBack<CompareResponse>() {
-            @Override
-            public void onSuccess(CompareResponse compareResponse) {
-                try {
-                    JSONObject js = new JSONObject(compareResponse.toString());
-                    String confidence = js.getString("confidence");//获取相似值
-                    if (Double.valueOf(confidence) > 80) {
-                        thanList.add(path);
+    //对比
+    public void compare(int i) {
+        OkGo.<String>post("https://api-cn.faceplusplus.com/facepp/v3/compare")
+                .tag(this)
+                .isMultipart(true)
+                .params("api_key", "IzPz7W9NNprFzJvOlA8g-BHFjfhJZPNC")
+                .params("api_secret", "iguAgm6pLRAOUqCmenagPcO3qCy5fI_I")
+                .params("image_url1", path1)
+                .params("image_url2", imageUrl2List.get(i))
+                .execute(new StringCallback() {
+                    @Override
+                    public void onSuccess(Response<String> response) {
+                        if (response.isSuccessful()) {
+                            String body = response.body();
+                            flag++;
+                            compare(flag);
+                        }
                     }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            @Override
-            public void onFailed(String s) {
-            }
-        });
+                });
     }
+
 
     @Override
     public void onClick(View v) {
@@ -138,7 +134,7 @@ public class ContrastActivity extends BaseActivity implements View.OnClickListen
 
     public void start(Class c) {
         Intent intent = new Intent(this, c);
-        intent.putExtra("url",url);
+        intent.putExtra("url", url);
         startActivity(intent);
     }
 }

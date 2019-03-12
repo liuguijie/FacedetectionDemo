@@ -141,7 +141,6 @@ public class MyCameraActivity extends BaseActivity implements View.OnClickListen
          *  当屏幕关闭并重新打开时，SurfaceTexture已经可用，“onSurfaceTextureAvailable”将不被调用。
          *  在这种情况下，我们可以打开相机并从这里开始预览（否则，我们等待SurfaceTextureListener中的表面准备就绪）。
          */
-
         mFile = new File(Environment.getExternalStorageDirectory().toString() + "/camera2/");
         if (!mFile.exists()) {
             mFile.mkdirs();
