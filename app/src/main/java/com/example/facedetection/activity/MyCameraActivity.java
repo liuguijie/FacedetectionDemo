@@ -1,4 +1,4 @@
-package com.example.facedetection;
+package com.example.facedetection.activity;
 
 import android.Manifest;
 import android.app.Dialog;
@@ -38,6 +38,7 @@ import android.view.View;
 import android.widget.ImageView;
 
 import com.bumptech.glide.Glide;
+import com.example.facedetection.R;
 import com.example.facedetection.base.BaseActivity;
 import com.example.facedetection.view.AutoFitTextureView;
 import com.example.facedetection.view.CommomDialog;
@@ -140,6 +141,12 @@ public class MyCameraActivity extends BaseActivity implements View.OnClickListen
          *  当屏幕关闭并重新打开时，SurfaceTexture已经可用，“onSurfaceTextureAvailable”将不被调用。
          *  在这种情况下，我们可以打开相机并从这里开始预览（否则，我们等待SurfaceTextureListener中的表面准备就绪）。
          */
+
+        mFile = new File(Environment.getExternalStorageDirectory().toString() + "/camera2/");
+        if (!mFile.exists()) {
+            mFile.mkdirs();
+        }
+        file = new File(mFile, System.currentTimeMillis() + ".jpg");
         checkSelfPermission();
     }
 
@@ -308,11 +315,6 @@ public class MyCameraActivity extends BaseActivity implements View.OnClickListen
         public void onImageAvailable(ImageReader reader) {
             //当图片可得到的时候获取图片并保存
             //创建文件
-            mFile = new File(Environment.getExternalStorageDirectory().toString() + "/camera2/");
-            if (!mFile.exists()) {
-                mFile.mkdirs();
-            }
-            file = new File(mFile, System.currentTimeMillis() + ".JPG");
             mBackgroundHandler.post(new ImageSaver(reader.acquireNextImage(), file));
         }
 
@@ -877,6 +879,7 @@ public class MyCameraActivity extends BaseActivity implements View.OnClickListen
             try {
                 output = new FileOutputStream(mFile);
                 output.write(bytes);
+                output.flush();
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {

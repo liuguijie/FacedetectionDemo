@@ -1,9 +1,12 @@
-package com.example.facedetection;
+package com.example.facedetection.activity;
 
 import android.content.Intent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+
+import com.example.facedetection.R;
+import com.example.facedetection.Util;
 import com.example.facedetection.base.BaseActivity;
 
 public class MainActivity extends BaseActivity {

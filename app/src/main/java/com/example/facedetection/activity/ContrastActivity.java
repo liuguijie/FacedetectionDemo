@@ -1,6 +1,7 @@
-package com.example.facedetection;
+package com.example.facedetection.activity;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -10,17 +11,19 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.example.facedetection.R;
+import com.example.facedetection.Util;
 import com.example.facedetection.adapter.PictureListAdapter;
 import com.example.facedetection.base.BaseActivity;
 import com.example.facedetection.bean.PictureAddress;
 import com.example.facedetection.face.FaceApi;
-import com.example.facedetection.face.FacePPApi;
 import com.megvii.facepp.api.IFacePPCallBack;
 import com.megvii.facepp.api.bean.CompareResponse;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.nio.channels.InterruptedByTimeoutException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -29,7 +32,7 @@ import java.util.List;
  * 上个页面拍照点击继续跳转此页面会卡住几秒才会跳转，按理因该是页面先出来再执行网络请求，现在没显示页面就执行了
  * 写在onResume里也不好使
  */
-public class ContrastActivity extends BaseActivity {
+public class ContrastActivity extends BaseActivity implements View.OnClickListener {
 
 
     private ImageView take_icon;
@@ -61,6 +64,9 @@ public class ContrastActivity extends BaseActivity {
         Glide.with(this).load(url).into(take_icon);
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         layoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
+
+        preservation.setOnClickListener(this);
+        newly_build.setOnClickListener(this);
     }
 
     @Override
@@ -77,15 +83,15 @@ public class ContrastActivity extends BaseActivity {
      */
     public void ergodicImage() {
         String[] split = url.split("camera2");
-        List<PictureAddress> imageList = Util.getAllFiles(split[0] + "camera2", "jpg");
+        List<PictureAddress> imageList = Util.getAllFiles(split[0] + "camera2", ".jpg");
         if (imageList == null || imageList.size() == 0) {
             return;
         }
-        byte[] data1 = Util.getimage(url);
+        byte[] data1 = Util.compressIma(url);
         //遍历识别
-        for (int i = imageList.size()-1; i >=0; i--) {
+        for (int i = imageList.size() - 1; i >= 0; i--) {
             String path = imageList.get(i).getPath();
-            byte[] data2 = Util.getimage(path);
+            byte[] data2 = Util.compressIma(path);
             faceData(data1, data2, path);
         }
         recycler.setAdapter(new PictureListAdapter(this, thanList));
@@ -95,8 +101,8 @@ public class ContrastActivity extends BaseActivity {
     public void faceData(byte[] data1, byte[] data2, final String path) {
         FaceApi faceApi = new FaceApi();
         HashMap<String, String> params = new HashMap<>();
-        params.put("api_key","IzPz7W9NNprFzJvOlA8g-BHFjfhJZPNC");
-        params.put("api_secret","iguAgm6pLRAOUqCmenagPcO3qCy5fI_I");
+        params.put("api_key", "IzPz7W9NNprFzJvOlA8g-BHFjfhJZPNC");
+        params.put("api_secret", "iguAgm6pLRAOUqCmenagPcO3qCy5fI_I");
         faceApi.compare(params, data1, data2, new IFacePPCallBack<CompareResponse>() {
             @Override
             public void onSuccess(CompareResponse compareResponse) {
@@ -113,76 +119,26 @@ public class ContrastActivity extends BaseActivity {
 
             @Override
             public void onFailed(String s) {
-                try {
-                    JSONObject js = new JSONObject(s);
-                    String error = js.getString("error_message");
-                    Log.e("ERROR", error);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
             }
         });
+    }
 
-        FacePPApi facePPApi = new FacePPApi("IzPz7W9NNprFzJvOlA8g-BHFjfhJZPNC", "iguAgm6pLRAOUqCmenagPcO3qCy5fI_I");
-        facePPApi.compare(new HashMap<String, String>(), data1, data2, new IFacePPCallBack<CompareResponse>() {
-            @Override
-            public void onSuccess(CompareResponse compareResponse) {
-                try {
-                    JSONObject js = new JSONObject(compareResponse.toString());
-                    String confidence = js.getString("confidence");//获取相似值
-                    if (Double.valueOf(confidence) > 80) {
-                        thanList.add(path);
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            @Override
-            public void onFailed(String s) {
-                try {
-                    JSONObject js = new JSONObject(s);
-                    String error = js.getString("error_message");
-                    Log.e("ERROR", error);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-
-
-        //第二种提交方式
-//        HashMap<String, byte[]> map1 = new HashMap<>();
-//        map1.put("image_file1", data1);
-//        HashMap<String, byte[]> map2 = new HashMap<>();
-//        map1.put("image_file2", data2);
-//        HashMap<String, String> params = new HashMap<>();
-//        params.put("api_key", "IzPz7W9NNprFzJvOlA8g-BHFjfhJZPNC");
-//        params.put("api_secret", "iguAgm6pLRAOUqCmenagPcO3qCy5fI_I");
-//        HttpUtils.post("https://api-cn.faceplusplus.com/facepp/v3/compare", params, map1, map2, new Callback() {
-//            @Override
-//            public void onFailure(Call call, IOException e) {
-//                e.getMessage();
-//            }
-//
-//            @Override
-//            public void onResponse(Call call, Response response) throws IOException {
-//                try {
-//                    ResponseBody body = response.body();
-//                    if (body != null) {
-//                        String result=body.string();
-//                        JSONObject js = new JSONObject(result);
-//                        String confidence = js.getString("confidence");//获取相似值
-//                        if (Double.valueOf(confidence) > 80) {
-//                            thanList.add(path);
-//                        }
-//                    }
-//                } catch (JSONException e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//        });
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.preservation:
+                start(PreservationActivity.class);
+                break;
+            case R.id.newly_build:
+                start(NewlyBuildActivity.class);
+                break;
+        }
 
     }
 
+    public void start(Class c) {
+        Intent intent = new Intent(this, c);
+        intent.putExtra("url",url);
+        startActivity(intent);
+    }
 }

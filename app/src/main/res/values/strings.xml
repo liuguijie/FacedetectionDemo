@@ -8,4 +8,6 @@
     <string name="tv_be_similar">和图片中的人物相似的有</string>
     <string name="news">新建</string>
     <string name="save">保存</string>
+    <string name="name">命名</string>
+    <string name="ed_name_tips">请输入保存文件名</string>
 </resources>
