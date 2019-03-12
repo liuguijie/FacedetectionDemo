@@ -29,4 +29,9 @@ dependencies {
     implementation 'com.android.support:recyclerview-v7:28.0.0'
     //网络请求okgo
     implementation 'com.lzy.net:okgo:3.0.4'
+
+}
+configurations {
+
+    all*.exclude group: 'com.squareup.okhttp3', module: 'okhttp'
 }

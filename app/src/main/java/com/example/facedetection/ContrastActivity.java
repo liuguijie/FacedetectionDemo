@@ -85,19 +85,22 @@ public class ContrastActivity extends BaseActivity {
      * 遍历对比
      */
     public void ergodicImage() {
-
+        flag = 0;
         String[] split = url.split("camera2");
         List<PictureAddress> imageList = Util.getAllFiles(split[0] + "camera2", "jpg");
+        data1 = BitmapUtils.compressImageUpload(url);
+        compare(flag);
         if (imageList == null || imageList.size() == 0) {
             return;
         }
-        data1 = BitmapUtils.compressImageUpload(url);
+
         listSize = imageList.size();
         //遍历识别
         for (int i = 0; i < imageList.size(); i++) {
             String path = BitmapUtils.compressImageUpload(imageList.get(i).getPath());
             imageUrl2List.add(path);
-            faceData(data1, path, path);
+//            faceData(data1, path, path);
+            compare(flag);
         }
         recycler.setAdapter(new PictureListAdapter(this, thanList));
 
@@ -111,7 +114,7 @@ public class ContrastActivity extends BaseActivity {
                 .params("apiKey", "IzPz7W9NNprFzJvOlA8g-BHFjfhJZPNC")
                 .params("apiSecret", "iguAgm6pLRAOUqCmenagPcO3qCy5fI_I")
                 .params("image_url1", data1)
-                .params("image_url2", imageUrl2List.get(i))
+                .params("image_url2", "/sdcard/WeiShoot/catch/1552366386103.JPG")
                 .execute(new StringCallback() {
                     @Override
                     public void onSuccess(Response<String> response) {
