@@ -152,7 +152,7 @@ public class ContrastActivity extends BaseActivity implements View.OnClickListen
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.preservation:
-                start(PreservationActivity.class);
+                start(FileListActivity.class);
                 break;
             case R.id.newly_build:
                 start(NewlyBuildActivity.class);

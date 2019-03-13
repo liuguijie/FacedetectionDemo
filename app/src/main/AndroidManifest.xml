@@ -30,5 +30,6 @@
         <activity android:name=".activity.MyCameraActivity" />
         <activity android:name=".activity.NewlyBuildActivity" />
         <activity android:name=".activity.PreservationActivity" />
+        <activity android:name=".activity.FileListActivity"/>
     </application>
 </manifest>

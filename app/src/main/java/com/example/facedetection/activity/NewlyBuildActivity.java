@@ -10,6 +10,8 @@ import com.bumptech.glide.Glide;
 import com.example.facedetection.R;
 import com.example.facedetection.base.BaseActivity;
 
+import java.io.File;
+
 /**
  * 新建
  */
@@ -43,6 +45,17 @@ public class NewlyBuildActivity extends BaseActivity {
             return;
         }
         String[] sp = path.split("camera2/");
-        String newsName=sp[0]+"camera2/"+name+".jpg";
+        String newsName = sp[0] + "camera2/" + name + ".jpg";
+        File oldFile = new File(path);
+        boolean b = oldFile.renameTo(new File(newsName));
+        if (b) {
+            Toast.makeText(this, "文件夹已存在", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(this, "保存成功", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(this, FileListActivity.class);
+            startActivity(intent);
+            finish();
+
+        }
     }
 }
