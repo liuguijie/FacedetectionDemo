@@ -2,6 +2,8 @@ package com.example.facedetection.activity;
 
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.view.View;
+import android.widget.TextView;
 
 import com.example.facedetection.R;
 import com.example.facedetection.adapter.FileListAdapter;
@@ -22,6 +24,7 @@ public class FileListActivity extends BaseActivity {
     private SmartRefreshLayout smartRefreshLayout;
     private FileListAdapter adapter;
     private List<String> fileList;
+    private TextView textView;
 
     @Override
     public int getLayoutId() {
@@ -32,6 +35,7 @@ public class FileListActivity extends BaseActivity {
     public void onLoad() {
         fileList = new ArrayList<>();
         recyclerView = findViewById(R.id.recycler_file);
+        textView = findViewById(R.id.text_no_data);
         smartRefreshLayout = findViewById(R.id.smart);
         recyclerView.setLayoutManager(new GridLayoutManager(this, 3));
         adapter = new FileListAdapter(fileList, this);
@@ -44,5 +48,8 @@ public class FileListActivity extends BaseActivity {
                 smartRefreshLayout.finishRefresh();
             }
         });
+        if (fileList != null && fileList.size() == 0) {
+            textView.setVisibility(View.VISIBLE);
+        }
     }
 }
