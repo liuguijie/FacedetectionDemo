@@ -8,6 +8,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.example.facedetection.adapter.PictureListAdapter;
@@ -93,16 +94,15 @@ public class ContrastActivity extends BaseActivity {
         if (imageList == null || imageList.size() == 0) {
             return;
         }
-
         listSize = imageList.size();
         //遍历识别
         for (int i = 0; i < imageList.size(); i++) {
             String path = BitmapUtils.compressImageUpload(imageList.get(i).getPath());
             imageUrl2List.add(path);
 //            faceData(data1, path, path);
-            compare(flag);
         }
-        recycler.setAdapter(new PictureListAdapter(this, thanList));
+        compare(flag);
+
 
     }
 
@@ -114,13 +114,29 @@ public class ContrastActivity extends BaseActivity {
                 .params("api_key", "IzPz7W9NNprFzJvOlA8g-BHFjfhJZPNC")
                 .params("api_secret", "iguAgm6pLRAOUqCmenagPcO3qCy5fI_I")
                 .params("image_url1", data1)
-                .params("image_url2", "/sdcard/WeiShoot/catch/1552366386103.JPG")
+                .params("image_url2", imageUrl2List.get(i))
                 .execute(new StringCallback() {
                     @Override
                     public void onSuccess(Response<String> response) {
+//                        Log.e("RESPONSE", response.body());
                         if (response.isSuccessful()) {
-                            flag++;
-                            compare(flag);
+                            try {
+                                JSONObject js = new JSONObject(response.body());
+                                if (js.getString("confidence") != null /*&& Double.valueOf(js.getString("confidence")) > 80*/) {
+                                    flag++;
+                                    if (flag == listSize) {
+                                        recycler.setAdapter(new PictureListAdapter(ContrastActivity.this, thanList));
+                                        Toast.makeText(ContrastActivity.this, "对比结束", Toast.LENGTH_SHORT).show();
+                                    } else {
+                                        compare(flag);
+                                    }
+                                } else {
+                                    Toast.makeText(ContrastActivity.this, js.getString("error_message"), Toast.LENGTH_SHORT).show();
+                                }
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+
                         }
                     }
                 });
