@@ -4,11 +4,14 @@ import android.content.Intent;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.example.facedetection.R;
 import com.example.facedetection.base.BaseActivity;
+
+import java.io.File;
 
 /**
  * 新建
@@ -25,8 +28,11 @@ public class NewlyBuildActivity extends BaseActivity {
 
     @Override
     public void onLoad() {
+        findViewById(R.id.clude_icon).setVisibility(View.GONE);
+        TextView title = findViewById(R.id.clude_title);
         ImageView icon = findViewById(R.id.newly_icon);
         ed_name = findViewById(R.id.ed_name);
+        title.setText(R.string.news);
         Intent intent = getIntent();
         path = intent.getStringExtra("url");
         if (null == path) {
@@ -43,6 +49,11 @@ public class NewlyBuildActivity extends BaseActivity {
             return;
         }
         String[] sp = path.split("camera2/");
-        String newsName=sp[0]+"camera2/"+name+".jpg";
+        String newsName = sp[0] + "camera2/" + name + ".jpg";
+        File oldFile = new File(path);
+        boolean b = oldFile.renameTo(new File(newsName));
+        if (b){
+
+        }
     }
 }
