@@ -104,40 +104,6 @@ public class Util {
         }
     }
 
-
-    /**
-     * 确保传给引擎的NV21数据宽度为4的倍数，高为2的倍数
-     *
-     * @param bitmap 传入的bitmap
-     * @return 调整后的bitmap
-     */
-    public static Bitmap alignBitmapForNv21(Bitmap bitmap) {
-        if (bitmap == null || bitmap.getWidth() < 4 || bitmap.getHeight() < 2) {
-            return null;
-        }
-        int width = bitmap.getWidth();
-        int height = bitmap.getHeight();
-
-        boolean needAdjust = false;
-        //保证宽度是4的倍数
-        if ((width & VALUE_FOR_4_ALIGN) != 0) {
-            width &= ~VALUE_FOR_4_ALIGN;
-            needAdjust = true;
-        }
-
-        //保证高度是2的倍数
-        if ((height & VALUE_FOR_2_ALIGN) != 0) {
-            height--;
-            needAdjust = true;
-        }
-
-        if (needAdjust) {
-            bitmap = imageCrop(bitmap, new Rect(0, 0, width, height));
-        }
-        return bitmap;
-    }
-
-
     /**
      * 裁剪bitmap
      *
