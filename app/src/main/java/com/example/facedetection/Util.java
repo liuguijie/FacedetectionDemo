@@ -53,7 +53,7 @@ public class Util {
         }
         List<PictureAddress> list = new ArrayList<>();
         for (File _file : files) {//遍历目录
-            if (_file.isFile() && _file.getName().endsWith(_type)) {
+            if (_file.getName().endsWith(_type)) {
                 String _name = _file.getName();
                 String filePath = _file.getAbsolutePath();//获取文件路径
                 String fileName = _file.getName().substring(0, _name.length() - 4);//获取文件名
@@ -103,40 +103,6 @@ public class Util {
             progressDlg = null;
         }
     }
-
-
-    /**
-     * 确保传给引擎的NV21数据宽度为4的倍数，高为2的倍数
-     *
-     * @param bitmap 传入的bitmap
-     * @return 调整后的bitmap
-     */
-    public static Bitmap alignBitmapForNv21(Bitmap bitmap) {
-        if (bitmap == null || bitmap.getWidth() < 4 || bitmap.getHeight() < 2) {
-            return null;
-        }
-        int width = bitmap.getWidth();
-        int height = bitmap.getHeight();
-
-        boolean needAdjust = false;
-        //保证宽度是4的倍数
-        if ((width & VALUE_FOR_4_ALIGN) != 0) {
-            width &= ~VALUE_FOR_4_ALIGN;
-            needAdjust = true;
-        }
-
-        //保证高度是2的倍数
-        if ((height & VALUE_FOR_2_ALIGN) != 0) {
-            height--;
-            needAdjust = true;
-        }
-
-        if (needAdjust) {
-            bitmap = imageCrop(bitmap, new Rect(0, 0, width, height));
-        }
-        return bitmap;
-    }
-
 
     /**
      * 裁剪bitmap
@@ -250,32 +216,12 @@ public class Util {
     public static byte[] toByteArray(Bitmap bitmap) {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+        bitmap.recycle();
         return baos.toByteArray();
     }
 
 
-    /**
-     * 质量压缩
-     */
-    public static byte[] compressImage(Bitmap image) {
-
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        Bitmap.CompressFormat Type = picType == 0 ? Bitmap.CompressFormat.PNG : Bitmap.CompressFormat.JPEG;
-        //image.compress(Bitmap.CompressFormat.JPEG, 100, baos);//质量压缩方法，这里100表示不压缩，把压缩后的数据存放到baos中
-        image.compress(Type, 100, baos);//质量压缩方法，这里100表示不压缩，把压缩后的数据存放到baos中
-        int options = 100;
-        while (baos.toByteArray().length / 1024 > 100) {  //循环判断如果压缩后图片是否大于100kb,大于继续压缩
-            baos.reset();//重置baos即清空baos
-            image.compress(Bitmap.CompressFormat.JPEG, options, baos);//这里压缩options%，把压缩后的数据存放到baos中
-            options -= 10;//每次都减少10
-        }
-        ByteArrayInputStream isBm = new ByteArrayInputStream(baos.toByteArray());//把压缩后的数据baos存放到ByteArrayInputStream中
-        Bitmap bitmap = BitmapFactory.decodeStream(isBm, null, null);//把ByteArrayInputStream数据生成图片
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
-        return baos.toByteArray();
-    }
-
-    public static byte[] getimage(String srcPath) {
+    public static byte[] compressIma(String srcPath) {
         BitmapFactory.Options newOpts = new BitmapFactory.Options();
         //开始读入图片，此时把options.inJustDecodeBounds 设回true了
         newOpts.inJustDecodeBounds = true;
@@ -299,7 +245,6 @@ public class Util {
         newOpts.inSampleSize = be;//设置缩放比例
         //重新读入图片，注意此时已经把options.inJustDecodeBounds 设回false了
         bitmap = BitmapFactory.decodeFile(srcPath, newOpts);
-        return compressImage(bitmap);//压缩好比例大小后再进行质量压缩
+        return toByteArray(bitmap);
     }
-
 }

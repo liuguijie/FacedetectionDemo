@@ -1,4 +1,4 @@
-package com.example.facedetection;
+package com.example.facedetection.activity;
 
 import android.Manifest;
 import android.app.Dialog;
@@ -6,6 +6,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
 import android.graphics.Matrix;
 import android.graphics.Point;
@@ -38,10 +40,12 @@ import android.view.View;
 import android.widget.ImageView;
 
 import com.bumptech.glide.Glide;
+import com.example.facedetection.R;
 import com.example.facedetection.base.BaseActivity;
 import com.example.facedetection.view.AutoFitTextureView;
 import com.example.facedetection.view.CommomDialog;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -144,7 +148,7 @@ public class MyCameraActivity extends BaseActivity implements View.OnClickListen
         if (!mFile.exists()) {
             mFile.mkdirs();
         }
-        file = new File(mFile, System.currentTimeMillis() + ".JPG");
+        file = new File(mFile, System.currentTimeMillis() + ".jpg");
         checkSelfPermission();
     }
 
@@ -313,11 +317,6 @@ public class MyCameraActivity extends BaseActivity implements View.OnClickListen
         public void onImageAvailable(ImageReader reader) {
             //当图片可得到的时候获取图片并保存
             //创建文件
-            mFile = new File(Environment.getExternalStorageDirectory().toString() + "/camera2/");
-            if (!mFile.exists()) {
-                mFile.mkdirs();
-            }
-            file = new File(mFile, System.currentTimeMillis() + ".JPG");
             mBackgroundHandler.post(new ImageSaver(reader.acquireNextImage(), file));
         }
 
@@ -882,6 +881,7 @@ public class MyCameraActivity extends BaseActivity implements View.OnClickListen
             try {
                 output = new FileOutputStream(mFile);
                 output.write(bytes);
+                output.flush();
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {
@@ -893,8 +893,70 @@ public class MyCameraActivity extends BaseActivity implements View.OnClickListen
                         e.printStackTrace();
                     }
                 }
+                saveBitmap(mFile.getAbsolutePath(),System.currentTimeMillis()+"l");
             }
         }
 
+    }
+
+    public static void saveBitmap(String path, String fileName) {
+        Bitmap bitmap = decodeSampledBitmapFromPath(path, 720, 1280);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        /* options表示 如果不压缩是100，表示压缩率为0。如果是70，就表示压缩率是70，表示压缩30%; */
+        int options = 100;
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+
+        while (baos.toByteArray().length / 1024 > 200) {
+            // 循环判断如果压缩后图片是否大于500kb继续压缩
+            baos.reset();
+            options -= 10;
+            if (options < 11) {//为了防止图片大小一直达不到200kb，options一直在递减，当options<0时，下面的方法会报错
+                // 也就是说即使达不到200kb，也就压缩到10了
+                bitmap.compress(Bitmap.CompressFormat.JPEG, options, baos);
+                break;
+            }
+            // 这里压缩options%，把压缩后的数据存放到baos中
+            bitmap.compress(Bitmap.CompressFormat.JPEG, options, baos);
+        }
+
+        String mDir = Environment.getExternalStorageDirectory() + "/camera3";
+        File dir = new File(mDir);
+        if (!dir.exists()) {
+            dir.mkdirs();//文件不存在，则创建文件
+        }
+        File file = new File(mDir, fileName);
+        try {
+            FileOutputStream out = new FileOutputStream(file);
+            out.write(baos.toByteArray());
+            out.flush();
+            out.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static Bitmap decodeSampledBitmapFromPath(String path, int width, int height) {
+
+//      获取图片的宽和高，并不把他加载到内存当中
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inJustDecodeBounds = true;
+        BitmapFactory.decodeFile(path, options);
+
+        options.inSampleSize = caculateInSampleSize(options, width, height);
+//      使用获取到的inSampleSize再次解析图片(此时options里已经含有压缩比 options.inSampleSize，再次解析会得到压缩后的图片，不会oom了 )
+        options.inJustDecodeBounds = false;
+        Bitmap bitmap = BitmapFactory.decodeFile(path, options);
+        return bitmap;
+    }
+    private static int caculateInSampleSize(BitmapFactory.Options options, int reqWidth, int reqHeight) {
+        int width = options.outWidth;
+        int height = options.outHeight;
+        int inSampleSize = 1;
+        if (width >= reqWidth || height >= reqHeight) {
+            int widthRadio = Math.round(width * 1.0f / reqWidth);
+            int heightRadio = Math.round(width * 1.0f / reqHeight);
+            inSampleSize = Math.max(widthRadio, heightRadio);
+        }
+        return inSampleSize;
     }
 }
