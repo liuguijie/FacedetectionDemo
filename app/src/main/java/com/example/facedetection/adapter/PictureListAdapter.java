@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.TabHost;
 
 import com.bumptech.glide.Glide;
 import com.example.facedetection.R;
@@ -17,11 +18,16 @@ public class PictureListAdapter extends RecyclerView.Adapter<PictureListAdapter.
     private List<String> mIcons;
     private LayoutInflater inflater;
     private Context mContext;
+    private ItemOnClickInface mOnClickInface;
 
     public PictureListAdapter(Context context, List<String> icons) {
         this.mContext = context;
         this.inflater = LayoutInflater.from(context);
         this.mIcons = icons;
+    }
+
+    public void setOnClickListener(ItemOnClickInface onClickInface) {
+        this.mOnClickInface = onClickInface;
     }
 
     @NonNull
@@ -32,8 +38,14 @@ public class PictureListAdapter extends RecyclerView.Adapter<PictureListAdapter.
     }
 
     @Override
-    public void onBindViewHolder(@NonNull MyViewHolder viewHolder, int i) {
+    public void onBindViewHolder(@NonNull MyViewHolder viewHolder, final int i) {
         Glide.with(mContext).load(mIcons.get(i)).into(viewHolder.beSimilar);
+        viewHolder.beSimilar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mOnClickInface.onClick(i);
+            }
+        });
     }
 
     @Override
@@ -48,5 +60,9 @@ public class PictureListAdapter extends RecyclerView.Adapter<PictureListAdapter.
             super(itemView);
             beSimilar = itemView.findViewById(R.id.be_similar_icon);
         }
+    }
+
+    public interface ItemOnClickInface {
+        void onClick(int position);
     }
 }

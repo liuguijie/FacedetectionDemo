@@ -6,6 +6,8 @@
     <string name="dialog_continue">继续</string>
     <string name="tv_portfollo">Portfollo</string>
     <string name="tv_be_similar">和图片中的人物相似的有</string>
+    <string name="tv_itm_tips">请选择保存的文件夹</string>
+    <string name="save_fail">保存失败</string>
     <string name="news">新建</string>
     <string name="save">保存</string>
     <string name="name">命名</string>

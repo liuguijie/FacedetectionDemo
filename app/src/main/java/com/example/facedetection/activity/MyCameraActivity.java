@@ -124,6 +124,7 @@ public class MyCameraActivity extends BaseActivity implements View.OnClickListen
     private CameraManager manager;
     private CameraDevice mCameraDevice;
     private File file;
+    private String time;
 
     @Override
     public int getLayoutId() {
@@ -148,7 +149,8 @@ public class MyCameraActivity extends BaseActivity implements View.OnClickListen
         if (!mFile.exists()) {
             mFile.mkdirs();
         }
-        file = new File(mFile, System.currentTimeMillis() + ".jpg");
+        time = System.currentTimeMillis() + ".jpg";
+        file = new File(mFile, time);
         checkSelfPermission();
     }
 
@@ -856,7 +858,7 @@ public class MyCameraActivity extends BaseActivity implements View.OnClickListen
     /**
      * 将JPG保存到指定的文件中。
      */
-    private static class ImageSaver implements Runnable {
+    private class ImageSaver implements Runnable {
 
         /**
          * JPEG图像
@@ -893,13 +895,13 @@ public class MyCameraActivity extends BaseActivity implements View.OnClickListen
                         e.printStackTrace();
                     }
                 }
-                saveBitmap(mFile.getAbsolutePath(),System.currentTimeMillis()+"l");
+                saveBitmap(mFile.getAbsolutePath(), time);
             }
         }
 
     }
 
-    public static void saveBitmap(String path, String fileName) {
+    public void saveBitmap(String path, String fileName) {
         Bitmap bitmap = decodeSampledBitmapFromPath(path, 720, 1280);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         /* options表示 如果不压缩是100，表示压缩率为0。如果是70，就表示压缩率是70，表示压缩30%; */
@@ -924,7 +926,8 @@ public class MyCameraActivity extends BaseActivity implements View.OnClickListen
         if (!dir.exists()) {
             dir.mkdirs();//文件不存在，则创建文件
         }
-        File file = new File(mDir, fileName);
+        String[] split = fileName.split("\\.");
+        File file = new File(mDir, split[0]);
         try {
             FileOutputStream out = new FileOutputStream(file);
             out.write(baos.toByteArray());
@@ -948,6 +951,7 @@ public class MyCameraActivity extends BaseActivity implements View.OnClickListen
         Bitmap bitmap = BitmapFactory.decodeFile(path, options);
         return bitmap;
     }
+
     private static int caculateInSampleSize(BitmapFactory.Options options, int reqWidth, int reqHeight) {
         int width = options.outWidth;
         int height = options.outHeight;

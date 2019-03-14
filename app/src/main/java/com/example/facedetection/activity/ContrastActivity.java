@@ -1,7 +1,7 @@
 package com.example.facedetection.activity;
 
+import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -9,28 +9,30 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
-import com.example.facedetection.BitmapUtils;
 import com.example.facedetection.R;
-import com.example.facedetection.Util;
+import com.example.facedetection.util.Util;
 import com.example.facedetection.adapter.PictureListAdapter;
 import com.example.facedetection.base.BaseActivity;
 import com.example.facedetection.bean.PictureAddress;
-import com.lzy.okgo.OkGo;
-import com.lzy.okgo.callback.StringCallback;
-import com.lzy.okgo.model.Response;
 import com.megvii.facepp.api.FacePPApi;
 import com.megvii.facepp.api.IFacePPCallBack;
 import com.megvii.facepp.api.bean.CompareResponse;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
@@ -52,6 +54,9 @@ public class ContrastActivity extends BaseActivity implements View.OnClickListen
     private List<byte[]> imageUrl2List = new ArrayList<>();
     private List<String> pathList = new ArrayList<>();
     private byte[] data1;
+    private PictureListAdapter adapter;
+    private String clickUrl = null;
+    private Context ctx;
 
     @Override
     public int getLayoutId() {
@@ -60,6 +65,7 @@ public class ContrastActivity extends BaseActivity implements View.OnClickListen
 
     @Override
     public void onLoad() {
+        ctx = ContrastActivity.this;
         findViewById(R.id.clude_icon).setVisibility(View.GONE);
         TextView title = findViewById(R.id.clude_title);
         preservation = findViewById(R.id.preservation);
@@ -79,6 +85,42 @@ public class ContrastActivity extends BaseActivity implements View.OnClickListen
         preservation.setOnClickListener(this);
         newly_build.setOnClickListener(this);
         ergodicImage();
+        adapter.setOnClickListener(new PictureListAdapter.ItemOnClickInface() {
+            @Override
+            public void onClick(int position) {
+                clickUrl = thanList.get(position);
+            }
+        });
+        preservation.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (clickUrl == null) {
+                    Toast.makeText(ctx, R.string.tv_itm_tips, Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        File parentFile = new File(clickUrl);
+                        boolean b = copyAndDelete(parentFile);
+                        if (b) {
+                            Intent fileIntent = new Intent(ctx, FileListActivity.class);
+                            fileIntent.putExtra("path", parentFile.getParentFile().getAbsolutePath());
+                            startActivity(fileIntent);
+                        } else {
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Toast.makeText(ContrastActivity.this, R.string.save_fail, Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                        }
+                    }
+                }).start();
+
+
+            }
+        });
     }
 
     /**
@@ -99,7 +141,7 @@ public class ContrastActivity extends BaseActivity implements View.OnClickListen
             pathList.add(str);
 
         }
-        Util.showProgressDlg("识别对比中","识别",this);
+        Util.showProgressDlg("识别对比中", "识别", this);
         compare(flag);
 
     }
@@ -121,7 +163,8 @@ public class ContrastActivity extends BaseActivity implements View.OnClickListen
                     flag++;
                     if (flag == imageUrl2List.size()) {
                         Util.stopProgressDlg();
-                        recycler.setAdapter(new PictureListAdapter(ContrastActivity.this, thanList));
+                        adapter = new PictureListAdapter(ContrastActivity.this, thanList);
+                        recycler.setAdapter(adapter);
                     } else {
                         compare(flag);
                     }
@@ -138,12 +181,43 @@ public class ContrastActivity extends BaseActivity implements View.OnClickListen
         });
     }
 
+    /**
+     * 复制
+     *
+     * @param name
+     * @return
+     */
+    public boolean copyAndDelete(File name) {
+        boolean copy = false;
+        int end;
+        FileInputStream inputStream = null;
+        FileOutputStream outputStream = null;
+        File file = new File(url);
+        try {
+            inputStream = new FileInputStream(file);
+            outputStream = new FileOutputStream(name);
+            byte[] by = new byte[2048];
+            while ((end = inputStream.read(by)) != -1) {
+                outputStream.write(by, 0, end);
+                copy = true;
+            }
+            outputStream.flush();
+            inputStream.close();
+            outputStream.close();
+            //删除原来图片
+            if (copy && file.delete())
+                return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
 
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.preservation:
-                start(PreservationActivity.class);
+                start(FileListActivity.class);
                 break;
             case R.id.newly_build:
                 start(NewlyBuildActivity.class);

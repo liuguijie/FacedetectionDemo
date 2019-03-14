@@ -1,4 +1,4 @@
-package com.example.facedetection;
+package com.example.facedetection.util;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
@@ -11,6 +11,7 @@ import android.net.Uri;
 import android.print.PrinterId;
 import android.provider.MediaStore;
 
+import com.example.facedetection.R;
 import com.example.facedetection.bean.PictureAddress;
 
 import java.io.ByteArrayInputStream;
