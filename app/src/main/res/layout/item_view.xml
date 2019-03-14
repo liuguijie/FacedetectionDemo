@@ -10,7 +10,7 @@
         android:layout_marginLeft="20dp"
         android:layout_marginTop="20dp">
 
-        <com.github.chrisbanes.photoview.PhotoView
+        <ImageView
             android:scaleType="fitXY"
             android:id="@+id/be_similar_icon"
             android:layout_width="100dp"

@@ -1,7 +1,6 @@
 package com.example.facedetection.adapter;
 
 import android.content.Context;
-import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -13,7 +12,6 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 import com.example.facedetection.R;
 import com.example.facedetection.bean.PictureAddress;
-import com.github.chrisbanes.photoview.PhotoView;
 
 import java.util.List;
 
@@ -46,7 +44,7 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.ViewHo
 
     @Override
     public void onBindViewHolder(@NonNull final FileListAdapter.ViewHolder viewHolder, int i) {
-        viewHolder.imageView.setImageResource(R.mipmap.ic_launcher);
+        Glide.with(mContext).load(fileList.get(i).getPath()).into(viewHolder.imageView);
         if (itemOnClick != null) {
             viewHolder.imageView.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -62,7 +60,7 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.ViewHo
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
-        PhotoView imageView;
+        ImageView imageView;
         TextView textView;
 
         public ViewHolder(@NonNull View itemView) {
