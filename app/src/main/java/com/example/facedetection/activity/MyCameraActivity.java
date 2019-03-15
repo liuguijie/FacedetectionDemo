@@ -927,7 +927,7 @@ public class MyCameraActivity extends BaseActivity implements View.OnClickListen
             dir.mkdirs();//文件不存在，则创建文件
         }
         String[] split = fileName.split("\\.");
-        File file = new File(mDir, split[0]);
+        File file = new File(mDir, split[0]+".jpg");
         try {
             FileOutputStream out = new FileOutputStream(file);
             out.write(baos.toByteArray());

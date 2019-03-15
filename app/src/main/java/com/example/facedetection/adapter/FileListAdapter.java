@@ -43,12 +43,15 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.ViewHo
     }
 
     @Override
-    public void onBindViewHolder(@NonNull final FileListAdapter.ViewHolder viewHolder, int i) {
+    public void onBindViewHolder(@NonNull final FileListAdapter.ViewHolder viewHolder, final int i) {
         Glide.with(mContext).load(fileList.get(i).getPath()).into(viewHolder.imageView);
         if (itemOnClick != null) {
             viewHolder.imageView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    if (itemOnClick!=null){
+                        itemOnClick.onClickListener(i);
+                    }
                 }
             });
         }
@@ -71,6 +74,6 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.ViewHo
     }
 
     public interface ItemOnClick {
-        void onClickListener();
+        void onClickListener(int position);
     }
 }

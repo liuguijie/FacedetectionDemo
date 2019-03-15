@@ -15,7 +15,6 @@ import com.scwang.smartrefresh.layout.SmartRefreshLayout;
 import com.scwang.smartrefresh.layout.api.RefreshLayout;
 import com.scwang.smartrefresh.layout.listener.OnRefreshListener;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -36,7 +35,6 @@ public class FileListActivity extends BaseActivity {
 
     @Override
     public void onLoad() {
-        fileList = new ArrayList<>();
         findViewById(R.id.clude_icon).setVisibility(View.GONE);
         TextView title = findViewById(R.id.clude_title);
         recyclerView = findViewById(R.id.recycler_file);
@@ -66,8 +64,11 @@ public class FileListActivity extends BaseActivity {
         });
         adapter.setItemOnClickListener(new FileListAdapter.ItemOnClick() {
             @Override
-            public void onClickListener() {
-
+            public void onClickListener(int i) {
+                PictureAddress address = fileList.get(i);
+                Intent in = new Intent(FileListActivity.this, PictureActivity.class);
+                in.putExtra("path", address.getPath());
+                startActivity(in);
             }
         });
     }

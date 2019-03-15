@@ -26,7 +26,9 @@ import org.json.JSONObject;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -85,42 +87,6 @@ public class ContrastActivity extends BaseActivity implements View.OnClickListen
         preservation.setOnClickListener(this);
         newly_build.setOnClickListener(this);
         ergodicImage();
-        adapter.setOnClickListener(new PictureListAdapter.ItemOnClickInface() {
-            @Override
-            public void onClick(int position) {
-                clickUrl = thanList.get(position);
-            }
-        });
-        preservation.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (clickUrl == null) {
-                    Toast.makeText(ctx, R.string.tv_itm_tips, Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        File parentFile = new File(clickUrl);
-                        boolean b = copyAndDelete(parentFile);
-                        if (b) {
-                            Intent fileIntent = new Intent(ctx, FileListActivity.class);
-                            fileIntent.putExtra("path", parentFile.getParentFile().getAbsolutePath());
-                            startActivity(fileIntent);
-                        } else {
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    Toast.makeText(ContrastActivity.this, R.string.save_fail, Toast.LENGTH_SHORT).show();
-                                }
-                            });
-                        }
-                    }
-                }).start();
-
-
-            }
-        });
     }
 
     /**
@@ -165,6 +131,12 @@ public class ContrastActivity extends BaseActivity implements View.OnClickListen
                         Util.stopProgressDlg();
                         adapter = new PictureListAdapter(ContrastActivity.this, thanList);
                         recycler.setAdapter(adapter);
+                        adapter.setOnClickListener(new PictureListAdapter.ItemOnClickInface() {
+                            @Override
+                            public void onClick(int position) {
+                                clickUrl = thanList.get(position);
+                            }
+                        });
                     } else {
                         compare(flag);
                     }
@@ -182,42 +154,66 @@ public class ContrastActivity extends BaseActivity implements View.OnClickListen
     }
 
     /**
-     * 复制
+     * 复制图片
      *
-     * @param name
+     * @param path
+     * @param fileName
      * @return
      */
-    public boolean copyAndDelete(File name) {
-        boolean copy = false;
-        int end;
-        FileInputStream inputStream = null;
-        FileOutputStream outputStream = null;
-        File file = new File(url);
+    public void copy(String path, File fileName) {
+        //创建文件
+        File newsFile = new File(fileName.getParentFile().getAbsoluteFile(), System.currentTimeMillis() + ".jpg");
+        File oldFile = new File(path);
+        int length;
+        boolean iscopy = false;
+        byte[] by = new byte[2048];
         try {
-            inputStream = new FileInputStream(file);
-            outputStream = new FileOutputStream(name);
-            byte[] by = new byte[2048];
-            while ((end = inputStream.read(by)) != -1) {
-                outputStream.write(by, 0, end);
-                copy = true;
+            FileInputStream is = new FileInputStream(oldFile);
+            FileOutputStream os = new FileOutputStream(newsFile);
+            while ((length = is.read(by)) != -1) {
+                os.write(by, 0, length);
+                os.flush();
+                iscopy = true;
             }
-            outputStream.flush();
-            inputStream.close();
-            outputStream.close();
-            //删除原来图片
-            if (copy && file.delete())
-                return true;
-        } catch (Exception e) {
+            is.close();
+            os.close();
+            //删除原文件
+            boolean delete = oldFile.delete();
+            if (delete && iscopy) {
+                Intent intent = new Intent(ctx, FileListActivity.class);
+                intent.putExtra("path", newsFile.getParentFile().getAbsolutePath());
+                startActivity(intent);
+                finish();
+            } else {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(ContrastActivity.this, R.string.save_fail, Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
             e.printStackTrace();
         }
-        return false;
     }
 
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.preservation:
-                start(FileListActivity.class);
+                if (clickUrl == null) {
+                    Toast.makeText(ctx, R.string.tv_itm_tips, Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        File parentFile = new File(clickUrl);
+                        copy(url, parentFile);
+                    }
+                }).start();
                 break;
             case R.id.newly_build:
                 start(NewlyBuildActivity.class);
@@ -230,67 +226,6 @@ public class ContrastActivity extends BaseActivity implements View.OnClickListen
         Intent intent = new Intent(this, c);
         intent.putExtra("url", url);
         startActivity(intent);
-    }
-
-    private static final String KEY_IMAGE_FILE = "image_file";
-    public static final String KEY_IMAGE_FILE_1 = "image_file1";
-    public static final String KEY_IMAGE_FILE_2 = "image_file2";
-
-    public static final String KEY_TEMPLATE_FILE = "template_file";
-    public static final String KEY_MERGE_FILE = "merge_file";
-
-    /**
-     * 构建请求参数
-     */
-    private static RequestBody buildRequestBody(final Map<String, String> params, Map<String, byte[]> filePath1, Map<String, byte[]> filePath2) throws Exception {
-        // 普通参数
-        final MultipartBody.Builder bodyBuilder = addNormalParams(params);
-
-        // 文件参数
-        addFileParamsByKey(filePath1, bodyBuilder);
-        addFileParamsByKey(filePath2, bodyBuilder);
-
-        return bodyBuilder.build();
-    }
-
-    /**
-     * 普通参数
-     */
-    private static MultipartBody.Builder addNormalParams(final Map<String, String> params) {
-
-        final MultipartBody.Builder bodyBuilder = new MultipartBody.Builder().setType(MultipartBody.FORM);
-
-        // 普通参数
-        Iterator<String> iterator = params.keySet().iterator();
-        while (iterator.hasNext()) {
-            String key = iterator.next();
-            String value = params.get(key);
-            bodyBuilder.addFormDataPart(key, value);
-        }
-        return bodyBuilder;
-    }
-
-    private static void addFileParamsByKey(Map<String, byte[]> filePath, MultipartBody.Builder bodyBuilder) throws Exception {
-        if (null != filePath) {
-            getDataByKey(filePath, KEY_IMAGE_FILE, bodyBuilder);
-            getDataByKey(filePath, KEY_IMAGE_FILE_1, bodyBuilder);
-            getDataByKey(filePath, KEY_IMAGE_FILE_2, bodyBuilder);
-            getDataByKey(filePath, KEY_TEMPLATE_FILE, bodyBuilder);
-            getDataByKey(filePath, KEY_MERGE_FILE, bodyBuilder);
-        }
-    }
-
-    private static void getDataByKey(Map<String, byte[]> file, String key, MultipartBody.Builder bodyBuilder) throws Exception {
-        if (!isEmpty(file.get(key))) {
-            addFileParams(bodyBuilder, key, file.get(key));
-        }
-    }
-
-    private static boolean isEmpty(byte[] data) {
-        return data == null || data.length == 0;
-    }
-
-    private static void addFileParams(MultipartBody.Builder bodyBuilder, String key, byte[] file) throws Exception {
-        bodyBuilder.addFormDataPart(key, key, RequestBody.create(MediaType.parse("application/octet-stream"), file));
+        fileList();
     }
 }

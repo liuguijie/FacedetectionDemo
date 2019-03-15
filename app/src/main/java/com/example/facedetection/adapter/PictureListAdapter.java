@@ -43,6 +43,7 @@ public class PictureListAdapter extends RecyclerView.Adapter<PictureListAdapter.
         viewHolder.beSimilar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if (mOnClickInface!=null)
                 mOnClickInface.onClick(i);
             }
         });

@@ -1,6 +1,8 @@
 package com.example.facedetection.activity;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Environment;
 import android.view.View;
 import android.widget.EditText;
@@ -13,6 +15,7 @@ import com.bumptech.glide.Glide;
 import com.example.facedetection.R;
 import com.example.facedetection.base.BaseActivity;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -26,7 +29,7 @@ public class NewlyBuildActivity extends BaseActivity {
 
     private EditText ed_name;
     private String path;
-    private String camera3Path = null;
+    private File newsFile;
 
     @Override
     public int getLayoutId() {
@@ -56,19 +59,16 @@ public class NewlyBuildActivity extends BaseActivity {
             Toast.makeText(this, R.string.ed_name_tips, Toast.LENGTH_SHORT).show();
             return;
         }
-        final File file = new File(Environment.getExternalStorageDirectory() + "/camera2");
         new Thread() {
             @Override
             public void run() {
                 super.run();
-                File file1 = new File(file, name);
-                boolean b = copyAndDelete(file1);
-                if (b) {
-                    Intent intent = new Intent(NewlyBuildActivity.this, FileListActivity.class);
-                    intent.putExtra("path", file1.getAbsolutePath());
-                    startActivity(intent);
-                    finish();
-                } else {
+                //创建路径
+                File file = new File(Environment.getExternalStorageDirectory() + "/camera2/" + name);
+                if (!file.exists()) {
+                    file.mkdirs();
+                    copy(path, file);
+                }else {
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
@@ -76,39 +76,48 @@ public class NewlyBuildActivity extends BaseActivity {
                         }
                     });
                 }
+
             }
         }.start();
 
     }
 
     /**
-     * 复制
-     * @param name
+     * 复制图片
+     *
+     * @param path
+     * @param fileName
      * @return
      */
-    public boolean copyAndDelete(File name) {
-        boolean copy = false;
-        int end;
-        FileInputStream inputStream = null;
-        FileOutputStream outputStream = null;
-        File file = new File(path);
+    public void copy(String path, File fileName) {
+        //创建文件
+        newsFile = new File(fileName, System.currentTimeMillis() + ".jpg");
+        File oldFile = new File(path);
+        int length;
+        boolean iscopy = false;
+        byte[] by = new byte[2048];
         try {
-            inputStream = new FileInputStream(file);
-            outputStream = new FileOutputStream(name);
-            byte[] by = new byte[2048];
-            while ((end = inputStream.read(by)) != -1) {
-                outputStream.write(by, 0, end);
-                copy = true;
+            FileInputStream is = new FileInputStream(oldFile);
+            FileOutputStream os = new FileOutputStream(newsFile);
+            while ((length = is.read(by)) != -1) {
+                os.write(by, 0, length);
+                os.flush();
+                iscopy = true;
             }
-            outputStream.flush();
-            inputStream.close();
-            outputStream.close();
-            //删除原来图片
-            if (copy && file.delete())
-                return true;
-        } catch (Exception e) {
+            is.close();
+            os.close();
+            //删除原文件
+            boolean delete = oldFile.delete();
+            if (delete && iscopy) {
+                Intent intent = new Intent(NewlyBuildActivity.this, FileListActivity.class);
+                intent.putExtra("path", newsFile.getParentFile().getAbsolutePath());
+                startActivity(intent);
+                finish();
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
             e.printStackTrace();
         }
-        return false;
     }
 }
