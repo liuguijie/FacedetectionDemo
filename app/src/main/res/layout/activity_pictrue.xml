@@ -4,8 +4,9 @@
     android:layout_height="match_parent">
 
     <com.github.chrisbanes.photoview.PhotoView
+        android:scaleType="fitXY"
         android:id="@+id/photoImage"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="250dp"
+        android:layout_height="300dp"
         android:layout_centerInParent="true" />
 </RelativeLayout>

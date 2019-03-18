@@ -14,6 +14,7 @@ import android.widget.Toast;
 import com.bumptech.glide.Glide;
 import com.example.facedetection.R;
 import com.example.facedetection.base.BaseActivity;
+import com.example.facedetection.util.Util;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -68,7 +69,7 @@ public class NewlyBuildActivity extends BaseActivity {
                 if (!file.exists()) {
                     file.mkdirs();
                     copy(path, file);
-                }else {
+                } else {
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
@@ -90,8 +91,9 @@ public class NewlyBuildActivity extends BaseActivity {
      * @return
      */
     public void copy(String path, File fileName) {
+        String time = System.currentTimeMillis() + ".jpg";
         //创建文件
-        newsFile = new File(fileName, System.currentTimeMillis() + ".jpg");
+        newsFile = new File(fileName, time);
         File oldFile = new File(path);
         int length;
         boolean iscopy = false;

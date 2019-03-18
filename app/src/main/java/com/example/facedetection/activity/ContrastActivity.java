@@ -2,6 +2,7 @@ package com.example.facedetection.activity;
 
 import android.content.Context;
 import android.content.Intent;
+import android.speech.tts.UtteranceProgressListener;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -13,10 +14,12 @@ import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.example.facedetection.R;
+import com.example.facedetection.bean.Person;
 import com.example.facedetection.util.Util;
 import com.example.facedetection.adapter.PictureListAdapter;
 import com.example.facedetection.base.BaseActivity;
 import com.example.facedetection.bean.PictureAddress;
+import com.google.gson.Gson;
 import com.megvii.facepp.api.FacePPApi;
 import com.megvii.facepp.api.IFacePPCallBack;
 import com.megvii.facepp.api.bean.CompareResponse;
@@ -93,8 +96,8 @@ public class ContrastActivity extends BaseActivity implements View.OnClickListen
      * 遍历对比
      */
     public void ergodicImage() {
-        String[] split = url.split("camera2");
-        List<PictureAddress> imageList = Util.getAllFiles(split[0] + "camera3", ".jpg");
+        String[] split = url.split("camera1");
+        List<PictureAddress> imageList = Util.getAllFiles(split[0] + "camera2", ".jpg");
         if (imageList == null || imageList.size() == 0) {
             return;
         }
@@ -102,7 +105,7 @@ public class ContrastActivity extends BaseActivity implements View.OnClickListen
         //遍历识别
         for (int i = 0; i < imageList.size(); i++) {
             String str = imageList.get(i).getPath();
-            byte[] data2 = Util.File2byte(str);
+            byte[] data2 = Util.compressIma1(str);
             imageUrl2List.add(data2);
             pathList.add(str);
 
@@ -119,35 +122,44 @@ public class ContrastActivity extends BaseActivity implements View.OnClickListen
         facePPApi.compare(new HashMap<String, String>(), data1, da2, new IFacePPCallBack<CompareResponse>() {
             @Override
             public void onSuccess(CompareResponse compareResponse) {
-                JSONObject jsonObject = null;
                 try {
-                    jsonObject = new JSONObject(compareResponse.toString());
-                    String confidence = jsonObject.getString("confidence");
-                    if (Double.valueOf(confidence) >= 80) {
+                    Gson gson = new Gson();
+                    Person person = gson.fromJson(compareResponse.toString(), Person.class);
+                    if (person.getConfidence() >= 80) {
                         thanList.add(pathList.get(i));
                     }
                     flag++;
-                    if (flag == imageUrl2List.size()) {
-                        Util.stopProgressDlg();
-                        adapter = new PictureListAdapter(ContrastActivity.this, thanList);
-                        recycler.setAdapter(adapter);
-                        adapter.setOnClickListener(new PictureListAdapter.ItemOnClickInface() {
-                            @Override
-                            public void onClick(int position) {
-                                clickUrl = thanList.get(position);
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (flag == imageUrl2List.size()) {
+                                Util.stopProgressDlg();
+                                adapter = new PictureListAdapter(ContrastActivity.this, thanList);
+                                recycler.setAdapter(adapter);
+                            } else {
+                                compare(flag);
                             }
-                        });
-                    } else {
-                        compare(flag);
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
+                            if (adapter != null) {
+                                adapter.setOnClickListener(new PictureListAdapter.ItemOnClickInface() {
+                                    @Override
+                                    public void onClick(int position) {
+                                        clickUrl = thanList.get(position);
+                                    }
+                                });
+                            }
+                        }
+                    });
+                } catch (Exception e) {
+                    Util.stopProgressDlg();
+                    e.getMessage();
                 }
+
 
             }
 
             @Override
             public void onFailed(String s) {
+                Util.stopProgressDlg();
                 Log.e("ERROR", s);
             }
         });
@@ -161,8 +173,9 @@ public class ContrastActivity extends BaseActivity implements View.OnClickListen
      * @return
      */
     public void copy(String path, File fileName) {
+        String time = System.currentTimeMillis() + ".jpg";
         //创建文件
-        File newsFile = new File(fileName.getParentFile().getAbsoluteFile(), System.currentTimeMillis() + ".jpg");
+        File newsFile = new File(fileName.getParentFile().getAbsoluteFile(), time);
         File oldFile = new File(path);
         int length;
         boolean iscopy = false;
@@ -203,20 +216,24 @@ public class ContrastActivity extends BaseActivity implements View.OnClickListen
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.preservation:
-                if (clickUrl == null) {
-                    Toast.makeText(ctx, R.string.tv_itm_tips, Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        File parentFile = new File(clickUrl);
-                        copy(url, parentFile);
+                if (thanList.size() != 0) {
+                    if (clickUrl == null) {
+                        Toast.makeText(ctx, R.string.tv_itm_tips, Toast.LENGTH_SHORT).show();
+                        return;
                     }
-                }).start();
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            File parentFile = new File(clickUrl);
+                            copy(url, parentFile);
+                        }
+                    }).start();
+                }
                 break;
             case R.id.newly_build:
-                start(NewlyBuildActivity.class);
+                if (thanList.size() == 0) {
+                    start(NewlyBuildActivity.class);
+                }
                 break;
         }
 

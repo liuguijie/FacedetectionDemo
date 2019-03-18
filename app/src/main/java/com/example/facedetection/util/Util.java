@@ -8,6 +8,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.net.Uri;
+import android.os.Environment;
 import android.print.PrinterId;
 import android.provider.MediaStore;
 
@@ -19,6 +20,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,7 +29,7 @@ public class Util {
     private static int picType = 1;
     private static final int VALUE_FOR_4_ALIGN = 0b11;
     private static final int VALUE_FOR_2_ALIGN = 0b01;
-
+    private static List<PictureAddress> list = new ArrayList<>();
     //获取屏幕的宽度
     public static int getScreenWidth(Activity activity) {
         Point point = new Point();
@@ -42,13 +44,46 @@ public class Util {
      * @param _type   查询类型，比如mp3什么的
      */
     public static List<PictureAddress> getAllFiles(String dirPath, String _type) {
+
         File f = new File(dirPath);
         if (!f.exists()) {//判断路径是否存在
             return null;
         }
-
         File[] files = f.listFiles();
+        if (files == null) {//判断权限
+            return null;
+        }
+        for (File _file : files) {//遍历目录
+            if (_file.getName().endsWith(_type)) {
+                String _name = _file.getName();
+                String filePath = _file.getAbsolutePath();//获取文件路径
+                String fileName = _file.getName().substring(0, _name.length() - 4);//获取文件名
+                PictureAddress imageBean = new PictureAddress();
+                imageBean.setName(fileName);
+                imageBean.setPath(filePath);
+                list.add(imageBean);
+            } else if (_file.isDirectory()) {//查询子目录
+                getAllFiles(_file.getAbsolutePath(), _type);
+            } else {
+            }
+        }
+        return list;
+    }
 
+
+    /**
+     * 获取指定目录内所有文件路径
+     *
+     * @param dirPath 需要查询的文件目录
+     * @param _type   查询类型，比如mp3什么的
+     */
+    public static List<PictureAddress> getAllFiles1(String dirPath, String _type) {
+
+        File f = new File(dirPath);
+        if (!f.exists()) {//判断路径是否存在
+            return null;
+        }
+        File[] files = f.listFiles();
         if (files == null) {//判断权限
             return null;
         }
@@ -63,7 +98,7 @@ public class Util {
                 imageBean.setPath(filePath);
                 list.add(imageBean);
             } else if (_file.isDirectory()) {//查询子目录
-                getAllFiles(_file.getAbsolutePath(), _type);
+                getAllFiles1(_file.getAbsolutePath(), _type);
             } else {
             }
         }
@@ -247,5 +282,114 @@ public class Util {
         //重新读入图片，注意此时已经把options.inJustDecodeBounds 设回false了
         bitmap = BitmapFactory.decodeFile(srcPath, newOpts);
         return toByteArray(bitmap);
+    }
+
+    public static byte[] compressIma1(String path) {
+        BitmapFactory.Options newOpts = new BitmapFactory.Options();
+        //开始读入图片，此时把options.inJustDecodeBounds 设回true了
+        newOpts.inJustDecodeBounds = true;
+        Bitmap bitmap = BitmapFactory.decodeFile(path, newOpts);//此时返回bm为空
+
+        newOpts.inJustDecodeBounds = false;
+        int w = newOpts.outWidth;
+        int h = newOpts.outHeight;
+        //现在主流手机比较多是800*480分辨率，所以高和宽我们设置为
+        float hh = 800f;//这里设置高度为800f
+        float ww = 480f;//这里设置宽度为480f
+        //缩放比。由于是固定比例缩放，只用高或者宽其中一个数据进行计算即可
+        int be = 1;//be=1表示不缩放
+        if (w > h && w > ww) {//如果宽度大的话根据宽度固定大小缩放
+            be = (int) (newOpts.outWidth / ww);
+        } else if (w < h && h > hh) {//如果高度高的话根据宽度固定大小缩放
+            be = (int) (newOpts.outHeight / hh);
+        }
+        if (be <= 0)
+            be = 1;
+        newOpts.inSampleSize = be;//设置缩放比例
+        //重新读入图片，注意此时已经把options.inJustDecodeBounds 设回false了
+        bitmap = BitmapFactory.decodeFile(path, newOpts);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 70, baos);
+        return baos.toByteArray();
+
+//        String mDir = Environment.getExternalStorageDirectory() + "/camera3";
+//        File dir = new File(mDir);
+//        if (!dir.exists()) {
+//            dir.mkdirs();//文件不存在，则创建文件
+//        }
+//        String[] split = fileName.split("\\.");
+//        File file = new File(mDir, split[0]+".jpg");
+//        try {
+//            FileOutputStream out = new FileOutputStream(file);
+//            out.write(baos.toByteArray());
+//            out.flush();
+//            out.close();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+    }
+
+
+    public static void saveBitmap(String path, String fileName) {
+        Bitmap bitmap = decodeSampledBitmapFromPath(path, 800, 480);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        /* options表示 如果不压缩是100，表示压缩率为0。如果是70，就表示压缩率是70，表示压缩30%; */
+        int options = 30;
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 30, baos);
+
+        while (baos.toByteArray().length / 1024 > 200) {
+            // 循环判断如果压缩后图片是否大于500kb继续压缩
+            baos.reset();
+            options -= 10;
+            if (options < 11) {//为了防止图片大小一直达不到200kb，options一直在递减，当options<0时，下面的方法会报错
+                // 也就是说即使达不到200kb，也就压缩到10了
+                bitmap.compress(Bitmap.CompressFormat.JPEG, options, baos);
+                break;
+            }
+            // 这里压缩options%，把压缩后的数据存放到baos中
+            bitmap.compress(Bitmap.CompressFormat.JPEG, options, baos);
+        }
+
+        String mDir = Environment.getExternalStorageDirectory() + "/camera3";
+        File dir = new File(mDir);
+        if (!dir.exists()) {
+            dir.mkdirs();//文件不存在，则创建文件
+        }
+        String[] split = fileName.split("\\.");
+        File file = new File(mDir, split[0] + ".jpg");
+        try {
+            FileOutputStream out = new FileOutputStream(file);
+            out.write(baos.toByteArray());
+            out.flush();
+            out.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static Bitmap decodeSampledBitmapFromPath(String path, int width, int height) {
+
+//      获取图片的宽和高，并不把他加载到内存当中
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inJustDecodeBounds = true;
+        BitmapFactory.decodeFile(path, options);
+
+        options.inSampleSize = caculateInSampleSize(options, width, height);
+//      使用获取到的inSampleSize再次解析图片(此时options里已经含有压缩比 options.inSampleSize，再次解析会得到压缩后的图片，不会oom了 )
+        options.inJustDecodeBounds = false;
+        Bitmap bitmap = BitmapFactory.decodeFile(path, options);
+        return bitmap;
+    }
+
+    private static int caculateInSampleSize(BitmapFactory.Options options, int reqWidth, int reqHeight) {
+        int width = options.outWidth;
+        int height = options.outHeight;
+        int inSampleSize = 1;
+        if (width >= reqWidth || height >= reqHeight) {
+            int widthRadio = Math.round(width * 1.0f / reqWidth);
+            int heightRadio = Math.round(width * 1.0f / reqHeight);
+            inSampleSize = Math.max(widthRadio, heightRadio);
+        }
+        return inSampleSize;
     }
 }

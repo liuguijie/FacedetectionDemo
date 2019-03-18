@@ -45,7 +45,7 @@ public class FileListActivity extends BaseActivity {
 
         Intent intent = getIntent();
         String path = intent.getStringExtra("path");
-        fileList = Util.getAllFiles(path, ".jpg");
+        fileList = Util.getAllFiles1(path, ".jpg");
 
         if (fileList != null && fileList.size() == 0) {
             textView.setVisibility(View.VISIBLE);

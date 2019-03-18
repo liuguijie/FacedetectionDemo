@@ -3,6 +3,8 @@ package com.example.facedetection.adapter;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
+import android.text.style.ClickableSpan;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -40,11 +42,11 @@ public class PictureListAdapter extends RecyclerView.Adapter<PictureListAdapter.
     @Override
     public void onBindViewHolder(@NonNull MyViewHolder viewHolder, final int i) {
         Glide.with(mContext).load(mIcons.get(i)).into(viewHolder.beSimilar);
-        viewHolder.beSimilar.setOnClickListener(new View.OnClickListener() {
+        viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mOnClickInface!=null)
-                mOnClickInface.onClick(i);
+                if (mOnClickInface != null)
+                    mOnClickInface.onClick(i);
             }
         });
     }
